@@ -1,21 +1,65 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/Sirupsen/logrus"
+	"github.com/codegangsta/cli"
 	"github.com/meatballhat/gfmxr"
 )
 
 func main() {
-	errs := gfmxr.NewRunner([]string{"./README.md"}, 0).Run()
-	for _, err := range errs {
-		fmt.Printf("ERROR: %#v\n", err)
+	app := cli.NewApp()
+	app.Name = "gfmxr"
+	app.Authors = []cli.Author{
+		cli.Author{
+			Name:  "Dan Buch",
+			Email: "dan@meatballhat.com",
+		},
+	}
+	app.Version = gfmxr.VersionString
+	app.Flags = []cli.Flag{
+		cli.StringSliceFlag{
+			Name:   "sources, s",
+			Usage:  "markdown source(s) to search for runnable examples",
+			EnvVar: "GFMXR_SOURCES,SOURCES",
+		},
+		cli.IntFlag{
+			Name:   "count, c",
+			Usage:  "expected count of runnable examples (for verification)",
+			EnvVar: "GFMXR_COUNT,COUNT",
+		},
+		cli.BoolFlag{
+			Name:   "debug, D",
+			Usage:  "show debug output",
+			EnvVar: "GFMXR_DEBUG,DEBUG",
+		},
 	}
 
-	if len(errs) > 0 {
-		os.Exit(1)
+	app.Action = func(ctx *cli.Context) {
+		log := logrus.New()
+		if ctx.Bool("debug") {
+			log.Level = logrus.DebugLevel
+		}
+
+		sources := ctx.StringSlice("sources")
+		count := ctx.Int("count")
+
+		if len(sources) < 1 {
+			sources = append(sources, "README.md")
+		}
+
+		errs := gfmxr.NewRunner(sources, count, log).Run()
+		for _, err := range errs {
+			log.Error(err)
+		}
+
+		if len(errs) > 0 {
+			os.Exit(1)
+		}
+
+		os.Exit(0)
 	}
 
-	os.Exit(0)
+	app.Run(os.Args)
 }

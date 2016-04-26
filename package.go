@@ -1,0 +1,5 @@
+package gfmxr
+
+var (
+	VersionString = "?"
+)

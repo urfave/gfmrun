@@ -6,5 +6,4 @@ go:
 
 script:
 - go test -v ./...
-- gfmxr
-- EXAMPLE_SOURCE_COUNT=1 ./prototype.py
+- gfmxr -D -c 1
