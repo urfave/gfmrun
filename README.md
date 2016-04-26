@@ -9,7 +9,7 @@ import (
   "fmt"
 )
 
-func Main() {
+func main() {
   fmt.Printf("Ohai from the land of GitHub-Flavored Markdown :wave:\n")
 }
 ```
