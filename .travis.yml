@@ -1,0 +1,9 @@
+language: go
+
+go:
+- 1.5.2
+- master
+
+script:
+- go test -v ./...
+- gfmxr
