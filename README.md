@@ -1,9 +1,58 @@
 # `gfmxr`
 
 A (<strong>G</strong>itHub-<strong>F</strong>lavored <strong>M</strong>arkdown
-E<strong>x</strong>ample <strong>R</strong>unner).  Runs stuff inside code
-gates (maybe!).  Potentially pronounceable as "Gif Mizzer", "Guh'fMaxxer" or
-"Guff Mazer".
+E<strong>x</strong>ample <strong>R</strong>unner).  Runs stuff inside code gates
+(maybe!).  Potentially pronounceable as "Gif Mizzer", "Guh'fMaxxer" or "Guff
+Mazer".
+
+## Supported Languages
+
+### Go
+
+If a code example has a declared language of `go` and the first line is `package
+main`, then `gfmxr` will write the source to a temporary file, build it, and run
+it.  It is worth noting that `go run` is *not* used, as this executes a child
+process of its own, thus making process management and exit success detection
+all the more complex.
+
+<!-- {
+  "output": "we could make.*sound"
+} -->
+``` go
+package main
+
+import (
+  "fmt"
+)
+
+func main() {
+  fmt.Println("we could make an entire album out of this one sound")
+}
+```
+
+### Python
+
+If a code example has a declared language of `python`, then `gfxmr` will write
+the source to a temporary file and run it via whatever executable is first in
+line to respond to `python`.
+
+<!-- {
+  "output": "lipstick ringo dance all night \\['.*'\\]!"
+} -->
+``` python
+from __future__ import print_function
+
+import sys
+
+
+def main():
+    print('lipstick ringo dance all night {!r}!'.format(sys.argv))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+```
 
 ## Tag annotation comments
 
