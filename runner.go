@@ -2,11 +2,15 @@ package gfmxr
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 )
@@ -25,6 +29,11 @@ var (
 		"go":     "go",
 		"python": "py",
 	}
+
+	defaultKillDuration = time.Second * 3
+	zeroDuration        = time.Second * 0
+
+	rawTagsRe = regexp.MustCompile("<!-- *({.+}) *-->")
 )
 
 type Runner struct {
@@ -115,22 +124,23 @@ func (r *Runner) checkSource(i int, sourceName, source string) []*runResult {
 	return res
 }
 
-type mdState int
+type mdState string
 
 const (
-	mdStateText mdState = iota
-	mdStateCodeBlock
-	mdStateRunnable
-	mdStateComment
+	mdStateText      mdState = "text"
+	mdStateCodeBlock mdState = "code-block"
+	mdStateRunnable  mdState = "runnable"
+	mdStateComment   mdState = "comment"
 )
 
 // custom markdown parser egad
 // (because blackfriday doesn't give us line numbers (???))
 func (r *Runner) findRunnables(i int, sourceName, source string) []*Runnable {
 	runnables := []*Runnable{}
-	cur := &Runnable{SourceFile: sourceName}
+	cur := NewRunnable(sourceName, r.log)
 	state := mdStateText
 	lastLine := ""
+	lastComment := ""
 
 	for j, line := range strings.Split(source, "\n") {
 		trimmedLine := strings.TrimSpace(line)
@@ -146,14 +156,16 @@ func (r *Runner) findRunnables(i int, sourceName, source string) []*Runnable {
 		if strings.HasPrefix(trimmedLine, "```") || strings.HasPrefix(trimmedLine, "~~~") {
 			if state == mdStateCodeBlock && trimmedLine == cur.BlockStart {
 				r.log.Debug("leaving non-runnable code block")
+				lastComment = ""
 				state = mdStateText
 				continue
 			}
 
 			if state == mdStateRunnable && trimmedLine == cur.BlockStart {
 				runnables = append(runnables, cur)
-				cur = &Runnable{SourceFile: sourceName}
+				cur = NewRunnable(sourceName, r.log)
 				r.log.WithField("runnable_count", len(runnables)).Debug("leaving runnable code block")
+				lastComment = ""
 				state = mdStateText
 				continue
 			}
@@ -161,23 +173,35 @@ func (r *Runner) findRunnables(i int, sourceName, source string) []*Runnable {
 			unGated := strings.Replace(strings.Replace(trimmedLine, "`", "", -1), "~", "", -1)
 			if len(unGated) > 0 {
 				r.log.WithField("lineno", j).Debug("starting new runnable")
+				trimmedComment := rawTagsRe.FindStringSubmatch(strings.TrimSpace(lastComment))
+				if len(trimmedComment) > 1 {
+					r.log.WithField("raw_tags", trimmedComment[1]).Debug("setting raw tags")
+					cur.RawTags = trimmedComment[1]
+				}
 				cur.Begin(j, trimmedLine)
 				state = mdStateRunnable
 				continue
 			}
 
 			r.log.WithField("lineno", j).Debug("starting new non-runnable code block")
+			lastComment = ""
 			state = mdStateCodeBlock
-
+		} else if strings.HasPrefix(trimmedLine, "<!--") && strings.HasSuffix(trimmedLine, "-->") {
+			lastComment = line
+			state = mdStateText
 		} else if strings.HasPrefix(trimmedLine, "<!--") {
-			if state != mdStateText {
-				state = mdStateComment
-			}
+			lastComment = line
+			state = mdStateComment
 		} else if strings.HasPrefix(trimmedLine, "-->") {
 			if state == mdStateComment {
+				lastComment += line
 				state = mdStateText
 			}
 		} else {
+			if state == mdStateComment {
+				lastComment += line
+			}
+
 			if state == mdStateRunnable {
 				cur.Lines = append(cur.Lines, line)
 			}
@@ -280,12 +304,44 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 		"command": commandArgs,
 	}).Debug("running runnable")
 
-	err = cmd.Run()
+	interruptable, dur := rn.Interruptable()
+	interrupted := false
+
+	if interruptable {
+		r.log.WithFields(logrus.Fields{"cmd": cmd, "dur": dur}).Debug("running with `Start`")
+		err = cmd.Start()
+		<-time.After(dur)
+		_ = cmd.Process.Signal(os.Interrupt)
+		_ = cmd.Process.Signal(syscall.SIGHUP)
+		if err == nil {
+			_, err = cmd.Process.Wait()
+		}
+		interrupted = true
+	} else {
+		r.log.WithField("cmd", cmd).Debug("running with `Run`")
+		err = cmd.Run()
+	}
+
 	res := &runResult{
 		Runnable: rn,
 		Retcode:  -1,
 		Stdout:   outBuf.String(),
 		Stderr:   errBuf.String(),
+	}
+
+	expectedOutput := rn.ExpectedOutput()
+
+	if expectedOutput != nil {
+		if !expectedOutput.MatchString(res.Stdout) {
+			res.Error = fmt.Errorf("expected output does not match actual: %q != %q",
+				expectedOutput, res.Stdout)
+			return res
+		} else {
+			r.log.WithFields(logrus.Fields{
+				"expected": fmt.Sprintf("%q", expectedOutput.String()),
+				"actual":   fmt.Sprintf("%q", res.Stdout),
+			}).Debug("output matched")
+		}
 	}
 
 	if err != nil {
@@ -295,6 +351,9 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 		}
 
 		res.Error = err
+		if interrupted && interruptable {
+			res.Error = nil
+		}
 		return res
 	}
 
@@ -311,11 +370,25 @@ type runResult struct {
 }
 
 type Runnable struct {
+	RawTags    string
+	Tags       map[string]interface{}
 	SourceFile string
 	BlockStart string
 	Lang       string
 	LineOffset int
 	Lines      []string
+
+	log *logrus.Logger
+}
+
+func NewRunnable(sourceName string, log *logrus.Logger) *Runnable {
+	return &Runnable{
+		Tags:       map[string]interface{}{},
+		Lines:      []string{},
+		SourceFile: sourceName,
+
+		log: log,
+	}
 }
 
 func (rn *Runnable) String() string {
@@ -332,6 +405,52 @@ func (rn *Runnable) Begin(lineno int, line string) {
 			rn.BlockStart = strings.TrimSpace(line[:i+1])
 			return
 		}
+	}
+}
+
+func (rn *Runnable) Interruptable() (bool, time.Duration) {
+	rn.parseTags()
+	if v, ok := rn.Tags["interrupt"]; ok {
+		if bv, ok := v.(bool); ok {
+			return bv, defaultKillDuration
+		}
+
+		if sv, ok := v.(string); ok {
+			if dv, err := time.ParseDuration(sv); err == nil {
+				return true, dv
+			}
+		}
+
+		return true, defaultKillDuration
+	}
+
+	return false, zeroDuration
+}
+
+func (rn *Runnable) ExpectedOutput() *regexp.Regexp {
+	rn.parseTags()
+
+	if v, ok := rn.Tags["output"]; ok {
+		if s, ok := v.(string); ok {
+			return regexp.MustCompile(s)
+		}
+	}
+
+	return nil
+}
+
+func (rn *Runnable) parseTags() {
+	if rn.Tags == nil {
+		rn.Tags = map[string]interface{}{}
+	}
+
+	if rn.RawTags == "" {
+		return
+	}
+
+	err := json.Unmarshal([]byte(rn.RawTags), &rn.Tags)
+	if err != nil {
+		rn.log.WithField("err", err).Warn("failed to parse raw tags")
 	}
 }
 
