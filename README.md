@@ -13,7 +13,7 @@ blocks, e.g.:
   "awesome": "maybe",
 } -->
 \`\`\` go
-package main
+package lolmain
 // ... stuff
 \`\`\`
 ```
