@@ -1,19 +1,21 @@
-# `gfmxr` (<em>G</em>itHub-<em>F</em>lavored <em>M</em>arkdown E<em>x</em>ample <em>R</em>unner)
+# `gfmxr`
 
-Runs stuff inside code gates (maybe!).  Potentially pronounceable as "Gif
-Mizzer", "Guh'fMaxxer" or "Guff Mazer".
+A (<strong>G</strong>itHub-<strong>F</strong>lavored <strong>M</strong>arkdown
+E<strong>x</strong>ample <strong>R</strong>unner).  Runs stuff inside code
+gates (maybe!).  Potentially pronounceable as "Gif Mizzer", "Guh'fMaxxer" or
+"Guff Mazer".
 
 ## Tag annotation comments
 
 `gfmxr` supports the use of JSON tags embedded in comments preceding code
-blocks, e.g.:
+blocks, e.g. (just pretend `^` are backticks):
 
 ```
 <!-- { "awesome": "maybe", "all on one line": "yep" } -->
-~~~ go
+^^^ go
 package lolmain
 // ... stuff
-~~~
+^^^
 ```
 
 ```
@@ -21,10 +23,10 @@ package lolmain
   "wow": "cool",
   "multiple": "lines"
 } -->
-~~~ go
+^^^ go
 package lolmain
 // ... stuff
-~~~
+^^^
 ```
 
 ```
@@ -34,10 +36,10 @@ package lolmain
 } -->
 
 
-~~~ go
+^^^ go
 package lolmain
 // ... stuff
-~~~
+^^^
 ```
 
 ### `"output"` tag
@@ -48,10 +50,10 @@ Given a regular expression string value, asserts that the program output
 ### `"interrupt"` tag
 
 Given either a truthy or duration string value, interrupts the program via
-`SIGINT` *and* `SIGHUP`.  If the value is truthy, then the default duration is
-used (3s).  If the value is a string duration, then the parsed duration is used.
-This tag is intended for use with long-lived example programs such as HTTP
-servers.
+increasingly serious signals (`INT`, `HUP`, `TERM`, and finally `KILL`). If the
+value is truthy, then the default duration is used (3s).  If the value is a
+string duration, then the parsed duration is used.  This tag is intended for
+use with long-lived example programs such as HTTP servers.
 
 ## Examples
 
