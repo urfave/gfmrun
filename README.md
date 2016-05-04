@@ -88,7 +88,7 @@ Annotated with an `"interrupt"` JSON tag that informs `gfmxr` to interrupt the
 example program after a specified duration, which implies that the exit code is
 ignored (not Windows-compatible):
 
-<!-- { "interrupt": "1s" } -->
+<!-- { "interrupt": "2s" } -->
 ``` go
 package main
 
@@ -102,7 +102,7 @@ func main() {
     w.WriteHeader(http.StatusOK)
     fmt.Fprintf(w, "Why Hello From Your Friendly Server Example :bomb:\n")
   })
-  http.ListenAndServe(":8989", nil)
+  http.ListenAndServe(":8990", nil)
 }
 ```
 

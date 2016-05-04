@@ -33,7 +33,7 @@ var (
 		"python": func(_ *Runnable) (bool, string) { return true, "" },
 	}
 	DefaultExecutors = map[string][]string{
-		"go": []string{"go", "run", "$FILE"},
+		"go": []string{"sh", "-c", "go build -o $FILE-goexe $FILE && exec $FILE-goexe"},
 	}
 	DefaultFileExtensions = map[string]string{
 		"go":     "go",
@@ -211,16 +211,13 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 			return
 		}
 		_ = os.Remove(tmpFileWithExt)
+		_ = os.Remove(fmt.Sprintf("%s-goexe", tmpFileWithExt))
 	}()
 
 	commandArgs := []string{}
 
 	for _, s := range exe {
-		if s == "$FILE" {
-			commandArgs = append(commandArgs, tmpFileWithExt)
-			continue
-		}
-		commandArgs = append(commandArgs, s)
+		commandArgs = append(commandArgs, strings.Replace(s, "$FILE", tmpFileWithExt, -1))
 	}
 
 	cmd := exec.Command(commandArgs[0], commandArgs[1:]...)
@@ -243,13 +240,34 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 	if interruptable {
 		r.log.WithFields(logrus.Fields{"cmd": cmd, "dur": dur}).Debug("running with `Start`")
 		err = cmd.Start()
-		<-time.After(dur)
-		_ = cmd.Process.Signal(os.Interrupt)
-		_ = cmd.Process.Signal(syscall.SIGHUP)
-		if err == nil {
-			_, err = cmd.Process.Wait()
+
+		for _, sig := range []syscall.Signal{
+			syscall.SIGINT,
+			syscall.SIGHUP,
+			syscall.SIGTERM,
+			syscall.SIGKILL,
+		} {
+			<-time.After(dur)
+			r.log.WithFields(logrus.Fields{
+				"signal": sig,
+			}).Debug("attempting signal")
+
+			sigErr := cmd.Process.Signal(sig)
+			if sigErr != nil {
+				r.log.WithFields(logrus.Fields{
+					"signal": sig,
+					"err":    sigErr,
+				}).Debug("signal returned error")
+				continue
+			}
+
+			proc, _ := os.FindProcess(cmd.Process.Pid)
+			sigErr = proc.Signal(syscall.Signal(0))
+			if sigErr != nil && sigErr.Error() == "no such process" {
+				interrupted = true
+				break
+			}
 		}
-		interrupted = true
 	} else {
 		r.log.WithField("cmd", cmd).Debug("running with `Run`")
 		err = cmd.Run()
@@ -429,7 +447,15 @@ func (rf *runnableFinder) handleLine() *Runnable {
 		return rf.setState(mdStateCodeBlock)
 	} else if strings.HasPrefix(rf.trimmedLine, "<!--") && strings.HasSuffix(rf.trimmedLine, "-->") {
 		if rf.state == mdStateText {
-			rf.lastComment = rf.line
+			rf.setState(mdStateComment)
+			rf.line = ""
+			rf.trimmedLine = ""
+			rf.setState(mdStateText)
+		} else {
+			rf.log.WithFields(logrus.Fields{
+				"state": rf.state,
+				"line":  rf.trimmedLine,
+			}).Debug("not setting lastComment")
 		}
 	} else if strings.HasPrefix(rf.trimmedLine, "<!--") {
 		return rf.setState(mdStateComment)
@@ -477,7 +503,6 @@ func (rf *runnableFinder) handleTransition(transition int) *Runnable {
 		rf.textSize = 0
 		rf.lastComment = rf.line
 	case mdStateTransCommentText:
-		rf.lastComment += rf.line
 		rf.textSize = len(rf.trimmedLine)
 	case mdStateTransCodeBlockText:
 		rf.codeBlockStart = ""
@@ -492,8 +517,9 @@ func (rf *runnableFinder) handleTransition(transition int) *Runnable {
 		rf.lastComment = ""
 	case mdStateTransTextRunnable, mdStateTransCommentRunnable:
 		rf.log.WithFields(logrus.Fields{
-			"lineno":    rf.lineno,
-			"text_size": rf.textSize,
+			"lineno":       rf.lineno,
+			"text_size":    rf.textSize,
+			"last_comment": rf.lastComment,
 		}).Debug("starting new runnable")
 
 		if rf.textSize == 0 {
