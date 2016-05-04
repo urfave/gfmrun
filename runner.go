@@ -33,7 +33,8 @@ var (
 		"python": func(_ *Runnable) (bool, string) { return true, "" },
 	}
 	DefaultExecutors = map[string][]string{
-		"go": []string{"sh", "-c", "go build -o $FILE-goexe $FILE && exec $FILE-goexe"},
+		"go":     []string{"sh", "-c", "go build -o $FILE-goexe $FILE && exec $FILE-goexe"},
+		"python": []string{"python", "--", "$FILE"},
 	}
 	DefaultFileExtensions = map[string]string{
 		"go":     "go",
@@ -240,6 +241,7 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 	if interruptable {
 		r.log.WithFields(logrus.Fields{"cmd": cmd, "dur": dur}).Debug("running with `Start`")
 		err = cmd.Start()
+		time.Sleep(dur)
 
 		for _, sig := range []syscall.Signal{
 			syscall.SIGINT,
@@ -247,7 +249,6 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 			syscall.SIGTERM,
 			syscall.SIGKILL,
 		} {
-			<-time.After(dur)
 			r.log.WithFields(logrus.Fields{
 				"signal": sig,
 			}).Debug("attempting signal")
@@ -258,6 +259,7 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 					"signal": sig,
 					"err":    sigErr,
 				}).Debug("signal returned error")
+				time.Sleep(500 * time.Millisecond)
 				continue
 			}
 
@@ -267,6 +269,7 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 				interrupted = true
 				break
 			}
+			time.Sleep(500 * time.Millisecond)
 		}
 	} else {
 		r.log.WithField("cmd", cmd).Debug("running with `Run`")
