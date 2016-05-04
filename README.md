@@ -9,18 +9,36 @@ Mizzer", "Guh'fMaxxer" or "Guff Mazer".
 blocks, e.g.:
 
 ```
-<!-- {
-  "awesome": "maybe",
-} -->
-\`\`\` go
+<!-- { "awesome": "maybe", "all on one line": "yep" } -->
+~~~ go
 package lolmain
 // ... stuff
-\`\`\`
+~~~
 ```
 
-Because the `gfmxr` markdown "parser" is super naive, such tags will only work
-when there is no space between the end of the comment and the beginning of the
-code block.  Whoops!
+```
+<!-- {
+  "wow": "cool",
+  "multiple": "lines"
+} -->
+~~~ go
+package lolmain
+// ... stuff
+~~~
+```
+
+```
+<!-- {
+  "super": "advanced",
+  "whitespace after the comment": "mindblown"
+} -->
+
+
+~~~ go
+package lolmain
+// ... stuff
+~~~
+```
 
 ### `"output"` tag
 
@@ -53,6 +71,7 @@ program's output:
 <!-- {
   "output": "Ohai from.*:wave:"
 } -->
+
 ``` go
 package main
 
@@ -69,9 +88,7 @@ Annotated with an `"interrupt"` JSON tag that informs `gfmxr` to interrupt the
 example program after a specified duration, which implies that the exit code is
 ignored (not Windows-compatible):
 
-<!-- {
-  "interrupt": "1s"
-} -->
+<!-- { "interrupt": "1s" } -->
 ``` go
 package main
 
