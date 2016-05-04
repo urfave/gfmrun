@@ -6,4 +6,4 @@ go:
 
 script:
 - go test -v ./...
-- gfmxr -D -c $(grep -cE '^(package main|#!/usr/bin/env python)' README.md)
+- gfmxr -D -c $(grep -cE '^(package main|if __name__)' README.md)
