@@ -436,8 +436,17 @@ func (rf *runnableFinder) handleLine() *Runnable {
 			}
 		}
 
-		if rf.state == mdStateRunnable && rf.trimmedLine == rf.cur.BlockStart {
-			return rf.setState(mdStateText)
+		if rf.state == mdStateRunnable {
+			if rf.trimmedLine == rf.cur.BlockStart {
+				// assuming this is the matching closing gate of the runnable code block
+				return rf.setState(mdStateText)
+			} else {
+				rf.log.WithFields(logrus.Fields{
+					"block_start": rf.cur.BlockStart,
+					"lang":        rf.cur.Lang,
+					"line":        rf.trimmedLine,
+				}).Debug("mismatched closing gate")
+			}
 		}
 
 		if len(codeGateCharsRe.ReplaceAllString(rf.trimmedLine, "")) > 0 {
@@ -490,6 +499,12 @@ func (rf *runnableFinder) handleTransition(transition int) *Runnable {
 			"invalid_state": mdStateComment,
 		}).Debug("ignoring transition")
 		rf.state = mdStateCodeBlock
+	case mdStateTransRunnableCodeBlock:
+		rf.log.WithFields(logrus.Fields{
+			"state":         mdStateRunnable,
+			"invalid_state": mdStateCodeBlock,
+		}).Debug("ignoring transition")
+		rf.state = mdStateRunnable
 	case mdStateTransCodeBlockRunnable:
 		rf.log.WithFields(logrus.Fields{
 			"state":         mdStateCodeBlock,
@@ -522,6 +537,7 @@ func (rf *runnableFinder) handleTransition(transition int) *Runnable {
 			"last_comment": rf.lastComment,
 		}).Debug("starting new runnable")
 
+		// textSize of 0 means that the last comment is adjacent to the runnable
 		if rf.textSize == 0 {
 			trimmedComment := rawTagsRe.FindStringSubmatch(strings.TrimSpace(rf.lastComment))
 			if len(trimmedComment) > 1 {
@@ -592,14 +608,8 @@ func (rn *Runnable) GoString() string {
 func (rn *Runnable) Begin(lineno int, line string) {
 	rn.Lines = []string{}
 	rn.LineOffset = lineno + 1
-
-	for i, char := range line {
-		if char != '`' && char != '~' {
-			rn.Lang = line[i+1:]
-			rn.BlockStart = strings.TrimSpace(line[:i+1])
-			return
-		}
-	}
+	rn.Lang = strings.TrimSpace(codeGateCharsRe.ReplaceAllString(line, ""))
+	rn.BlockStart = strings.TrimSpace(strings.Replace(line, rn.Lang, "", 1))
 }
 
 func (rn *Runnable) Interruptable() (bool, time.Duration) {
