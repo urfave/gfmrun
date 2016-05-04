@@ -5,6 +5,11 @@ E<strong>x</strong>ample <strong>R</strong>unner).  Runs stuff inside code gates
 (maybe!).  Potentially pronounceable as "Gif Mizzer", "Guh'fMaxxer" or "Guff
 Mazer".
 
+This project is not intended to fully replace the example code running capabilities
+of any given language's tooling, but instead to fill a gap.  In the case of a Go
+repository, for example, it can be handy to have some verifiable code examples
+in the `README.md` *and* example functions in `*_test.go` files.
+
 ## Supported Languages
 
 ### Go
