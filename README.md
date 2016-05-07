@@ -12,6 +12,30 @@ in the `README.md` *and* example functions in `*_test.go` files.
 
 ## Supported Languages
 
+- [bash](#bash)
+- [go](#go)
+- [python](#python)
+- [ruby](#ruby)
+- [sh](#sh)
+
+### Bash
+
+If a code example has a declared language of `bash`, then `gfxmr` will write
+the source to a temporary file and run it via whatever executable is first in
+line to respond to `bash`.
+
+<!-- {
+  "output": "Begot by all the supernova"
+} -->
+``` bash
+for i in {97..99} ; do
+  echo "$i problems" >&2
+done
+
+echo "Begot by all the supernova (${0})"
+exit 0
+```
+
 ### Go
 
 If a code example has a declared language of `go` and the first line is `package
@@ -28,9 +52,11 @@ package main
 
 import (
   "fmt"
+  "os"
 )
 
 func main() {
+  fmt.Printf("---> %v\n", os.Args[0])
   fmt.Println("we could make an entire album out of this one sound")
 }
 ```
@@ -57,6 +83,46 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+```
+
+### Ruby
+
+If a code example has a declared language of `ruby`, then `gfxmr` will write
+the source to a temporary file and run it via whatever executable is first in
+line to respond to `ruby`.
+
+<!-- {
+  "output": "get out of.*the king"
+} -->
+``` ruby
+
+def main
+  puts $0
+  puts "get out of the path of the king"
+  return 0
+end
+
+if $0 == __FILE__
+  exit main
+end
+```
+
+### Sh
+
+If a code example has a declared language of `sh`, then `gfxmr` will write
+the source to a temporary file and run it via whatever executable is first in
+line to respond to `sh`.
+
+<!-- {
+  "output": "Saddle up preacher"
+} -->
+``` sh
+if [ 5 -eq 3 ] ; then
+  echo "YOU FOUND THE MARBLE IN THE OATMEAL"
+else
+  echo "Saddle up preacher, don't look back. (${0})"
+fi
+exit 0
 ```
 
 ## Tag annotation comments

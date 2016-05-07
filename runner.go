@@ -16,7 +16,10 @@ import (
 )
 
 var (
+	runFilterTrue = func(_ *Runnable) (bool, string) { return true, "" }
+
 	DefaultRunFilters = map[string]RunFilterFunc{
+		"bash": runFilterTrue,
 		"go": func(rn *Runnable) (bool, string) {
 			if len(rn.Lines) < 1 {
 				return false, "empty source"
@@ -30,15 +33,23 @@ var (
 
 			return true, ""
 		},
-		"python": func(_ *Runnable) (bool, string) { return true, "" },
+		"python": runFilterTrue,
+		"ruby":   runFilterTrue,
+		"sh":     runFilterTrue,
 	}
 	DefaultExecutors = map[string][]string{
+		"bash":   []string{"bash", "--", "$FILE"},
 		"go":     []string{"sh", "-c", "go build -o $FILE-goexe $FILE && exec $FILE-goexe"},
 		"python": []string{"python", "--", "$FILE"},
+		"ruby":   []string{"ruby", "--", "$FILE"},
+		"sh":     []string{"sh", "--", "$FILE"},
 	}
 	DefaultFileExtensions = map[string]string{
+		"bash":   "bash",
 		"go":     "go",
 		"python": "py",
+		"ruby":   "rb",
+		"sh":     "sh",
 	}
 
 	defaultKillDuration = time.Second * 3
