@@ -14,6 +14,7 @@ in the `README.md` *and* example functions in `*_test.go` files.
 
 - [bash](#bash)
 - [go](#go)
+- [java](#java)
 - [python](#python)
 - [ruby](#ruby)
 - [sh](#sh)
@@ -58,6 +59,26 @@ import (
 func main() {
   fmt.Printf("---> %v\n", os.Args[0])
   fmt.Println("we could make an entire album out of this one sound")
+}
+```
+
+### Java
+
+If a code example has a declared language of `java` and a line matching `^public
+class ([^ ]+)`, then `gfmxr` will write the source to a temporary file, build
+it, and run the class by name.
+
+<!-- {
+  "output": "Awaken the hive"
+} -->
+``` java
+public class GalacticPerimeter {
+
+  public static void main(String[] args) {
+    System.out.println(System.getenv("FILE"));
+    System.out.println("Awaken the hive");
+  }
+
 }
 ```
 
