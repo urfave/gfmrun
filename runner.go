@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"syscall"
@@ -16,7 +17,15 @@ import (
 )
 
 var (
+	runFilterTrue = func(rn *Runnable) (bool, string) {
+		if len(rn.Lines) < 1 {
+			return false, "empty source"
+		}
+		return true, ""
+	}
+
 	DefaultRunFilters = map[string]RunFilterFunc{
+		"bash": runFilterTrue,
 		"go": func(rn *Runnable) (bool, string) {
 			if len(rn.Lines) < 1 {
 				return false, "empty source"
@@ -30,15 +39,38 @@ var (
 
 			return true, ""
 		},
-		"python": func(_ *Runnable) (bool, string) { return true, "" },
+		"java": func(rn *Runnable) (bool, string) {
+			if len(rn.Lines) < 1 {
+				return false, "empty source"
+			}
+
+			for _, line := range rn.Lines {
+				if javaPublicClassRe.MatchString(line) {
+					return true, ""
+				}
+			}
+
+			return false, "no public class found"
+		},
+		"python": runFilterTrue,
+		"ruby":   runFilterTrue,
+		"sh":     runFilterTrue,
 	}
 	DefaultExecutors = map[string][]string{
-		"go":     []string{"sh", "-c", "go build -o $FILE-goexe $FILE && exec $FILE-goexe"},
+		"bash":   []string{"bash", "--", "$FILE"},
+		"go":     []string{"sh", "-c", "go build -o $NAMEBASE $FILE && exec $NAMEBASE"},
+		"java":   []string{"sh", "-c", "cd $DIR && javac $FILE && exec java $JAVA_CLASS"},
 		"python": []string{"python", "--", "$FILE"},
+		"ruby":   []string{"ruby", "--", "$FILE"},
+		"sh":     []string{"sh", "--", "$FILE"},
 	}
 	DefaultFileExtensions = map[string]string{
+		"bash":   "bash",
 		"go":     "go",
+		"java":   "java",
 		"python": "py",
+		"ruby":   "rb",
+		"sh":     "sh",
 	}
 
 	defaultKillDuration = time.Second * 3
@@ -47,7 +79,14 @@ var (
 	rawTagsRe = regexp.MustCompile("<!-- *({.+}) *-->")
 
 	codeGateCharsRe = regexp.MustCompile("[`~]+")
+
+	javaPublicClassRe = regexp.MustCompile("public +class +([^ ]+)")
 )
+
+type stringSub struct {
+	Old string
+	New string
+}
 
 type Runner struct {
 	Sources        []string
@@ -189,7 +228,27 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 		}
 	}
 
-	tmpFile, err := ioutil.TempFile("", "gfmxr")
+	tmpDir, err := ioutil.TempDir("", "gfmxr")
+	if err != nil {
+		return &runResult{Runnable: rn, Retcode: -1, Error: err}
+	}
+
+	defer func() {
+		if os.Getenv("GFMXR_PRESERVE_TMPFILES") == "1" {
+			return
+		}
+		os.RemoveAll(tmpDir)
+	}()
+
+	tmpFilename := fmt.Sprintf("example.%s", ext)
+	tmpJavaClassName := ""
+
+	if m := javaPublicClassRe.FindStringSubmatch(rn.String()); len(m) > 1 {
+		tmpJavaClassName = m[1]
+		tmpFilename = fmt.Sprintf("%s.java", tmpJavaClassName)
+	}
+
+	tmpFile, err := os.Create(filepath.Join(tmpDir, tmpFilename))
 	if err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
@@ -202,26 +261,39 @@ func (r *Runner) runRunnable(i int, rn *Runnable) *runResult {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
 
-	tmpFileWithExt := fmt.Sprintf("%s.%s", tmpFile.Name(), ext)
-	if err := os.Rename(tmpFile.Name(), tmpFileWithExt); err != nil {
-		return &runResult{Runnable: rn, Retcode: -1, Error: err}
-	}
-
-	defer func() {
-		if os.Getenv("GFMXR_PRESERVE_TMPFILES") == "1" {
-			return
-		}
-		_ = os.Remove(tmpFileWithExt)
-		_ = os.Remove(fmt.Sprintf("%s-goexe", tmpFileWithExt))
-	}()
-
 	commandArgs := []string{}
+	nameBase := strings.Replace(tmpFile.Name(), ext, "", 1)
 
 	for _, s := range exe {
-		commandArgs = append(commandArgs, strings.Replace(s, "$FILE", tmpFileWithExt, -1))
+		for _, sub := range []struct {
+			Old, New string
+		}{
+			{Old: "$DIR", New: tmpDir},
+			{Old: "$EXT", New: ext},
+			{Old: "$FILE", New: tmpFile.Name()},
+			{Old: "$JAVA_CLASS", New: tmpJavaClassName},
+			{Old: "$NAMEBASE", New: nameBase},
+		} {
+			s = strings.Replace(s, sub.Old, sub.New, -1)
+		}
+		commandArgs = append(commandArgs, s)
 	}
 
+	env := os.Environ()
+	env = append(env, fmt.Sprintf("GFMXR_DIR=%s", filepath.Dir(tmpFile.Name())))
+	env = append(env, fmt.Sprintf("DIR=%s", filepath.Dir(tmpFile.Name())))
+	env = append(env, fmt.Sprintf("GFMXR_EXT=%s", ext))
+	env = append(env, fmt.Sprintf("EXT=%s", ext))
+	env = append(env, fmt.Sprintf("GFMXR_FILE=%s", tmpFile.Name()))
+	env = append(env, fmt.Sprintf("FILE=%s", tmpFile.Name()))
+	env = append(env, fmt.Sprintf("GFMXR_JAVA_CLASS=%s", tmpJavaClassName))
+	env = append(env, fmt.Sprintf("JAVA_CLASS=%s", tmpJavaClassName))
+	env = append(env, fmt.Sprintf("GFMXR_NAMEBASE=%s", nameBase))
+	env = append(env, fmt.Sprintf("NAMEBASE=%s", nameBase))
+
 	cmd := exec.Command(commandArgs[0], commandArgs[1:]...)
+	cmd.Env = env
+
 	var (
 		outBuf bytes.Buffer
 		errBuf bytes.Buffer
