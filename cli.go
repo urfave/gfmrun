@@ -1,6 +1,7 @@
 package gfmxr
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -35,9 +36,34 @@ func NewCLI() *cli.App {
 			Usage:  "show debug output",
 			EnvVar: "GFMXR_DEBUG,DEBUG",
 		},
+		cli.StringFlag{
+			Name:   "languages, L",
+			Usage:  "location of languages.yml file from linguist",
+			Value:  gfmxr.DefaultLanguagesYml,
+			EnvVar: "GFMXR_LANGUAGES,LANGUAGES",
+		},
 	}
 
 	app.Commands = []cli.Command{
+		cli.Command{
+			Name:  "pull-languages",
+			Usage: "download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "languages-url, u",
+					Usage:  "source URL of languages.yml file from linguist",
+					Value:  gfmxr.DefaultLanguagesYmlURL,
+					EnvVar: "GFMXR_LANGUAGES_URL,LANGUAGES_URL",
+				},
+			},
+			Action: cliPullLanguages,
+		},
+		cli.Command{
+			Name:   "dump-languages",
+			Usage:  "dump the parsed languages data structure as JSON",
+			Hidden: true,
+			Action: cliDumpLanguages,
+		},
 		cli.Command{
 			Name:   "list-frobs",
 			Usage:  "list the known frobs and handled frob aliases",
@@ -113,4 +139,23 @@ func cliListFrobs(ctx *cli.Context) error {
 	}
 
 	return nil
+}
+
+func cliDumpLanguages(ctx *cli.Context) error {
+	langs, err := gfmxr.LoadLanguages(ctx.GlobalString("languages"))
+	if err != nil {
+		return cli.NewMultiError(cli.NewExitError("failed to load languages", 4), err)
+	}
+
+	jsonBytes, err := json.MarshalIndent(langs.Map, "", "  ")
+	if err != nil {
+		return cli.NewMultiError(cli.NewExitError("failed to marshal to json", 4), err)
+	}
+
+	fmt.Printf(string(jsonBytes) + "\n")
+	return nil
+}
+
+func cliPullLanguages(ctx *cli.Context) error {
+	return gfmxr.PullLanguagesYml(ctx.String("languages-url"), ctx.GlobalString("languages"))
 }
