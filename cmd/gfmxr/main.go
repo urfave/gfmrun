@@ -5,7 +5,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/meatballhat/gfmxr"
+	"github.com/urfave/gfmxr"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 	app.Authors = []cli.Author{
 		cli.Author{
 			Name:  "Dan Buch",
-			Email: "dan@meatballhat.com",
+			Email: "daniel.buch@gmail.com",
 		},
 	}
 	app.Version = gfmxr.VersionString
