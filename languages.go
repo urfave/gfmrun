@@ -1,0 +1,146 @@
+package gfmxr
+
+import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"gopkg.in/yaml.v2"
+)
+
+var (
+	DefaultLanguagesYml    = filepath.Join(getCacheDir(), "languages.yml")
+	DefaultLanguagesYmlURL = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml"
+)
+
+type Languages struct {
+	Map map[string]*LanguageDefinition
+}
+
+func (l *Languages) denormalize() {
+	for key, def := range l.Map {
+		func() {
+			lowkey := strings.ToLower(key)
+
+			if def.Aliases == nil {
+				def.Aliases = []string{}
+			}
+
+			for _, alias := range def.Aliases {
+				if alias == lowkey {
+					return
+				}
+			}
+
+			def.Aliases = append(def.Aliases, lowkey)
+		}()
+
+		for _, alias := range def.Aliases {
+			l.Map[alias] = def
+		}
+	}
+}
+
+func (l *Languages) Lookup(identifier string) *LanguageDefinition {
+	lowerIdent := strings.ToLower(identifier)
+	for key, def := range l.Map {
+		if key == lowerIdent {
+			return def
+		}
+	}
+
+	for _, def := range l.Map {
+		if def.Aliases == nil {
+			continue
+		}
+
+		for _, alias := range def.Aliases {
+			if alias == lowerIdent {
+				return def
+			}
+		}
+	}
+
+	return nil
+}
+
+type LanguageDefinition struct {
+	Type         string   `json:"type,omitempty" yaml:"type"`
+	Aliases      []string `json:"aliases,omitempty" yaml:"aliases"`
+	Interpreters []string `json:"interpreters,omitempty" yaml:"interpreters"`
+	AceMode      string   `json:"ace_mode,omitempty" yaml:"ace_mode"`
+	Group        string   `json:"group,omitempty" yaml:"group"`
+}
+
+func LoadLanguages(languagesYml string) (*Languages, error) {
+	if languagesYml == "" {
+		languagesYml = DefaultLanguagesYml
+	}
+
+	rawBytes, err := ioutil.ReadFile(languagesYml)
+	if err != nil {
+		return nil, err
+	}
+
+	return loadLanguagesFromBytes(rawBytes)
+}
+
+func loadLanguagesFromBytes(languagesYmlBytes []byte) (*Languages, error) {
+	m := map[string]*LanguageDefinition{}
+	err := yaml.Unmarshal(languagesYmlBytes, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	langs := &Languages{Map: m}
+	langs.denormalize()
+	return langs, nil
+}
+
+func PullLanguagesYml(srcURL, destFile string) error {
+	err := os.MkdirAll(filepath.Dir(destFile), os.FileMode(0750))
+	if err != nil {
+		return err
+	}
+
+	if srcURL == "" {
+		srcURL = DefaultLanguagesYmlURL
+	}
+
+	if destFile == "" {
+		destFile = DefaultLanguagesYml
+	}
+
+	resp, err := http.Get(srcURL)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode > 299 {
+		return fmt.Errorf("fetching %q returned status %v", srcURL)
+	}
+
+	respBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	outTmp, err := ioutil.TempFile("", "gfmxr-linguist")
+	if err != nil {
+		return err
+	}
+
+	outTmp.Close()
+
+	defer func() { _ = os.Remove(outTmp.Name()) }()
+
+	err = ioutil.WriteFile(outTmp.Name(), respBodyBytes, os.FileMode(0640))
+	if err != nil {
+		return err
+	}
+
+	return os.Rename(outTmp.Name(), destFile)
+}
