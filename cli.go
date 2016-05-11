@@ -39,7 +39,7 @@ func NewCLI() *cli.App {
 		cli.StringFlag{
 			Name:   "languages, L",
 			Usage:  "location of languages.yml file from linguist",
-			Value:  gfmxr.DefaultLanguagesYml,
+			Value:  DefaultLanguagesYml,
 			EnvVar: "GFMXR_LANGUAGES,LANGUAGES",
 		},
 	}
@@ -52,7 +52,7 @@ func NewCLI() *cli.App {
 				cli.StringFlag{
 					Name:   "languages-url, u",
 					Usage:  "source URL of languages.yml file from linguist",
-					Value:  gfmxr.DefaultLanguagesYmlURL,
+					Value:  DefaultLanguagesYmlURL,
 					EnvVar: "GFMXR_LANGUAGES_URL,LANGUAGES_URL",
 				},
 			},
@@ -77,7 +77,7 @@ func NewCLI() *cli.App {
 	return app
 }
 
-func RunExamples(sources []string, expectedCount int, log *logrus.Logger) error {
+func RunExamples(sources []string, expectedCount int, languages string, log *logrus.Logger) error {
 	if sources == nil {
 		sources = []string{}
 	}
@@ -90,7 +90,7 @@ func RunExamples(sources []string, expectedCount int, log *logrus.Logger) error 
 		sources = append(sources, "README.md")
 	}
 
-	runner, err := NewRunner(sources, expectedCount, log)
+	runner, err := NewRunner(sources, expectedCount, languages, log)
 	if err != nil {
 		return err
 	}
@@ -110,21 +110,44 @@ func cliRunExamples(ctx *cli.Context) error {
 		log.Level = logrus.DebugLevel
 	}
 
-	err := RunExamples(ctx.StringSlice("sources"), ctx.Int("count"), log)
+	sources := ctx.StringSlice("sources")
+	count := ctx.Int("count")
+	languages := ctx.String("languages")
 
+	if len(sources) < 1 {
+		sources = append(sources, "README.md")
+	}
+
+	runner, err := NewRunner(sources, count, languages, log)
 	if err != nil {
 		log.Error(err)
-		return cli.NewMultiError(err, cli.NewExitError("", 2))
+		return cli.NewExitError("", 2)
+	}
+
+	errs := runner.Run()
+	for _, err := range errs {
+		log.Error(err)
+	}
+
+	if len(errs) > 0 {
+		return cli.NewExitError("", 1)
 	}
 
 	return nil
 }
 
 func cliListFrobs(ctx *cli.Context) error {
+	langs, err := LoadLanguages(ctx.GlobalString("languages"))
+	if err != nil {
+		return err
+	}
+
 	known := map[string]bool{}
 
 	for name, _ := range DefaultFrobs {
-		known[name] = true
+		for _, alias := range langs.Lookup(name).Aliases {
+			known[alias] = true
+		}
 	}
 
 	knownSlice := []string{}
@@ -142,7 +165,7 @@ func cliListFrobs(ctx *cli.Context) error {
 }
 
 func cliDumpLanguages(ctx *cli.Context) error {
-	langs, err := gfmxr.LoadLanguages(ctx.GlobalString("languages"))
+	langs, err := LoadLanguages(ctx.GlobalString("languages"))
 	if err != nil {
 		return cli.NewMultiError(cli.NewExitError("failed to load languages", 4), err)
 	}
@@ -157,5 +180,5 @@ func cliDumpLanguages(ctx *cli.Context) error {
 }
 
 func cliPullLanguages(ctx *cli.Context) error {
-	return gfmxr.PullLanguagesYml(ctx.String("languages-url"), ctx.GlobalString("languages"))
+	return PullLanguagesYml(ctx.String("languages-url"), ctx.GlobalString("languages"))
 }
