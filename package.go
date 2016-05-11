@@ -1,14 +1,25 @@
 package gfmxr
 
 import (
+	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"github.com/codegangsta/cli"
 )
 
 var (
-	VersionString = "?"
+	VersionString = "0.1.0"
 )
+
+func init() {
+	cli.VersionPrinter = printVersion
+}
+
+func printVersion(_ *cli.Context) {
+	fmt.Printf("%s\n", VersionString)
+}
 
 func getHomeDir() string {
 	if v := os.Getenv("HOME"); v != "" {
