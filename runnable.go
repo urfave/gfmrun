@@ -144,11 +144,11 @@ func (rn *Runnable) Run(i int) *runResult {
 
 	nameBase := strings.Replace(tmpFile.Name(), "."+rn.Frob.Extension(), "", 1)
 
-	expandedCommands := [][]string{}
+	expandedCommands := []*command{}
 
-	for _, command := range rn.Frob.Commands(rn) {
-		expanded := []string{}
-		for _, s := range command {
+	for _, c := range rn.Frob.Commands(rn) {
+		expandedArgs := []string{}
+		for _, s := range c.Args {
 			for _, sub := range []struct {
 				Old, New string
 			}{
@@ -160,9 +160,13 @@ func (rn *Runnable) Run(i int) *runResult {
 			} {
 				s = strings.Replace(s, sub.Old, sub.New, -1)
 			}
-			expanded = append(expanded, s)
+			expandedArgs = append(expandedArgs, s)
 		}
-		expandedCommands = append(expandedCommands, expanded)
+		expandedCommands = append(expandedCommands,
+			&command{
+				Main: c.Main,
+				Args: expandedArgs,
+			})
 	}
 
 	env := os.Environ()
@@ -187,7 +191,7 @@ func (rn *Runnable) Run(i int) *runResult {
 	return rn.executeCommands(env, expandedCommands)
 }
 
-func (rn *Runnable) executeCommands(env []string, commands [][]string) *runResult {
+func (rn *Runnable) executeCommands(env []string, commands []*command) *runResult {
 	outBuf := &bytes.Buffer{}
 	errBuf := &bytes.Buffer{}
 	var err error
@@ -198,19 +202,19 @@ func (rn *Runnable) executeCommands(env []string, commands [][]string) *runResul
 		"runnable": rn.GoString(),
 	}).Debug("running runnable")
 
-	for _, commandArgs := range commands {
-		cmd := exec.Command(commandArgs[0], commandArgs[1:]...)
+	for _, c := range commands {
+		cmd := exec.Command(c.Args[0], c.Args[1:]...)
 		cmd.Env = env
 		cmd.Stdout = outBuf
 		cmd.Stderr = errBuf
 
 		rn.log.WithFields(logrus.Fields{
-			"command": commandArgs,
+			"command": c.Args,
 		}).Debug("running runnable command")
 
 		interruptable, dur := rn.Interruptable()
 
-		if interruptable {
+		if c.Main && interruptable {
 			rn.log.WithFields(logrus.Fields{
 				"cmd": cmd,
 				"dur": dur,
@@ -249,6 +253,9 @@ func (rn *Runnable) executeCommands(env []string, commands [][]string) *runResul
 				}
 				time.Sleep(500 * time.Millisecond)
 			}
+		} else if !c.Main {
+			rn.log.WithField("cmd", cmd).Debug("running non-Main with `Run`")
+			err = cmd.Run()
 		} else {
 			rn.log.WithField("cmd", cmd).Debug("running with `Run`")
 			err = cmd.Run()

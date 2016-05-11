@@ -30,7 +30,12 @@ type Frob interface {
 	CanExecute(*Runnable) error
 	TempFileName(*Runnable) string
 	Environ(*Runnable) []string
-	Commands(*Runnable) [][]string
+	Commands(*Runnable) []*command
+}
+
+type command struct {
+	Main bool
+	Args []string
 }
 
 func NewSimpleInterpretedFrob(ext, interpreter string) Frob {
@@ -66,8 +71,13 @@ func (e *InterpretedFrob) Environ(_ *Runnable) []string {
 	return e.env
 }
 
-func (e *InterpretedFrob) Commands(_ *Runnable) [][]string {
-	return [][]string{e.tmpl}
+func (e *InterpretedFrob) Commands(_ *Runnable) []*command {
+	return []*command{
+		&command{
+			Main: true,
+			Args: e.tmpl,
+		},
+	}
 }
 
 type GoFrob struct{}
@@ -98,10 +108,15 @@ func (e *GoFrob) Environ(_ *Runnable) []string {
 	return []string{}
 }
 
-func (e *GoFrob) Commands(_ *Runnable) [][]string {
-	return [][]string{
-		[]string{"go", "build", "-o", "$NAMEBASE", "$FILE"},
-		[]string{"$NAMEBASE"},
+func (e *GoFrob) Commands(_ *Runnable) []*command {
+	return []*command{
+		&command{
+			Args: []string{"go", "build", "-o", "$NAMEBASE", "$FILE"},
+		},
+		&command{
+			Main: true,
+			Args: []string{"$NAMEBASE"},
+		},
 	}
 }
 
@@ -133,10 +148,15 @@ func (e *JavaFrob) Environ(_ *Runnable) []string {
 	return []string{}
 }
 
-func (e *JavaFrob) Commands(rn *Runnable) [][]string {
-	return [][]string{
-		[]string{"javac", "$BASENAME"},
-		[]string{"java", e.getClassName(rn.String())},
+func (e *JavaFrob) Commands(rn *Runnable) []*command {
+	return []*command{
+		&command{
+			Args: []string{"javac", "$BASENAME"},
+		},
+		&command{
+			Main: true,
+			Args: []string{"java", e.getClassName(rn.String())},
+		},
 	}
 }
 
