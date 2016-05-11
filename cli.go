@@ -47,7 +47,7 @@ func NewCLI() *cli.App {
 	app.Commands = []cli.Command{
 		cli.Command{
 			Name:  "pull-languages",
-			Usage: "download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES",
+			Usage: "explicitly download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES (automatic otherwise)",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "languages-url, u",
@@ -77,7 +77,7 @@ func NewCLI() *cli.App {
 	return app
 }
 
-func RunExamples(sources []string, expectedCount int, languages string, log *logrus.Logger) error {
+func RunExamples(sources []string, expectedCount int, languagesFile string, log *logrus.Logger) error {
 	if sources == nil {
 		sources = []string{}
 	}
@@ -90,7 +90,7 @@ func RunExamples(sources []string, expectedCount int, languages string, log *log
 		sources = append(sources, "README.md")
 	}
 
-	runner, err := NewRunner(sources, expectedCount, languages, log)
+	runner, err := NewRunner(sources, expectedCount, languagesFile, log)
 	if err != nil {
 		return err
 	}
@@ -110,27 +110,12 @@ func cliRunExamples(ctx *cli.Context) error {
 		log.Level = logrus.DebugLevel
 	}
 
-	sources := ctx.StringSlice("sources")
-	count := ctx.Int("count")
-	languages := ctx.String("languages")
+	err := RunExamples(ctx.StringSlice("sources"), ctx.Int("count"),
+		ctx.String("languages"), log)
 
-	if len(sources) < 1 {
-		sources = append(sources, "README.md")
-	}
-
-	runner, err := NewRunner(sources, count, languages, log)
 	if err != nil {
 		log.Error(err)
-		return cli.NewExitError("", 2)
-	}
-
-	errs := runner.Run()
-	for _, err := range errs {
-		log.Error(err)
-	}
-
-	if len(errs) > 0 {
-		return cli.NewExitError("", 1)
+		return cli.NewMultiError(err, cli.NewExitError("", 2))
 	}
 
 	return nil
