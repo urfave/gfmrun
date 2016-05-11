@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/meatballhat/gfmxr"
+	"github.com/urfave/gfmxr"
 )
 
 func main() {
@@ -47,7 +48,7 @@ func main() {
 	app.Commands = []cli.Command{
 		cli.Command{
 			Name:  "pull-languages",
-			Usage: "download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES",
+			Usage: "explicitly download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES (automatic otherwise)",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "languages-url, u",
@@ -79,6 +80,38 @@ func main() {
 				return nil
 			},
 		},
+		cli.Command{
+			Name:   "list-frobs",
+			Usage:  "list the known frobs and handled frob aliases",
+			Hidden: true,
+			Action: func(ctx *cli.Context) error {
+				langs, err := gfmxr.LoadLanguages(ctx.GlobalString("languages"))
+				if err != nil {
+					return err
+				}
+
+				known := map[string]bool{}
+
+				for name, _ := range gfmxr.DefaultFrobs {
+					for _, alias := range langs.Lookup(name).Aliases {
+						known[alias] = true
+					}
+				}
+
+				knownSlice := []string{}
+				for lang := range known {
+					knownSlice = append(knownSlice, lang)
+				}
+
+				sort.Strings(knownSlice)
+
+				for _, lang := range knownSlice {
+					fmt.Printf("%s\n", lang)
+				}
+
+				return nil
+			},
+		},
 	}
 
 	app.Action = func(ctx *cli.Context) error {
@@ -89,12 +122,19 @@ func main() {
 
 		sources := ctx.StringSlice("sources")
 		count := ctx.Int("count")
+		languages := ctx.String("languages")
 
 		if len(sources) < 1 {
 			sources = append(sources, "README.md")
 		}
 
-		errs := gfmxr.NewRunner(sources, count, log).Run()
+		runner, err := gfmxr.NewRunner(sources, count, languages, log)
+		if err != nil {
+			log.Error(err)
+			return cli.NewExitError("", 2)
+		}
+
+		errs := runner.Run()
 		for _, err := range errs {
 			log.Error(err)
 		}

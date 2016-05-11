@@ -10,14 +10,18 @@ of any given language's tooling, but instead to fill a gap.  In the case of a Go
 repository, for example, it can be handy to have some verifiable code examples
 in the `README.md` *and* example functions in `*_test.go` files.
 
-## Supported Languages
+## Explicitly Supported Languages
 
 - [bash](#bash)
 - [go](#go)
 - [java](#java)
+- [javascript](#javascript)
+- [json](#json)
 - [python](#python)
 - [ruby](#ruby)
+- [shell](#shell)
 - [sh](#sh)
+- [zsh](#zsh)
 
 ### Bash
 
@@ -73,12 +77,47 @@ it, and run the class by name.
 } -->
 ``` java
 public class GalacticPerimeter {
-
   public static void main(String[] args) {
     System.out.println(System.getenv("FILE"));
     System.out.println("Awaken the hive");
   }
+}
+```
 
+### JavaScript (assumed node.js compatible)
+
+If a code example has a declared language of `javascript`, then `gfmxr` will
+write the source to a temporary file and run it via whatever executable is first
+in line to respond to `node`.
+
+<!-- {
+  "output": "they won't stop at dancin"
+} -->
+``` javascript
+var main = function() {
+  console.log("they won't stop at dancin, no");
+  console.log("they won't stop at dancin");
+};
+
+if (require.main == module) {
+  main();
+}
+```
+
+### JSON
+
+If a code example has a declared language of `json`, then `gfmxr` will write the
+source to a temporary file and "run" it via the `node` executable for
+validation.
+
+``` json
+{
+  "no": "output",
+  "levels": [
+    8000,
+    9000,
+    9001
+  ]
 }
 ```
 
@@ -128,6 +167,23 @@ if $0 == __FILE__
 end
 ```
 
+### Shell
+
+If a code example has a declared language that can be mapped to the linguist
+definition of `shell`, then `gfmxr` will write the source to a temporary file
+and run it via whatever executable is first in line to respond to `bash`.
+
+<!-- {
+  "output": "[jJ]ust the way you like it"
+} -->
+``` shell
+if [ 0 -eq 0 ] ; then
+  echo "Just the way you like it, yes"
+  echo "just the way you like it. (${0})"
+fi
+exit 0
+```
+
 ### Sh
 
 If a code example has a declared language of `sh`, then `gfxmr` will write
@@ -144,6 +200,40 @@ else
   echo "Saddle up preacher, don't look back. (${0})"
 fi
 exit 0
+```
+
+### Zsh
+
+If a code example has a declared language of `zsh`, then `gfxmr` will write
+the source to a temporary file and run it via whatever executable is first in
+line to respond to `zsh`.
+
+<!-- {
+  "output": "kiss me"
+} -->
+``` zsh
+printf "Kiss me.\nJust kiss me.\n(${0})\n"
+
+bye 0
+```
+
+### Implicitly Supported Languages
+
+If a code example's declared language can be matched to one of the explicitly
+supported languages listed above via the [linguist languages
+definition](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml),
+then the matched language's runner will be used.
+
+This example declares `node`, but will be run via the `javascript` frob, which
+happens to use the `node` executable anyway:
+
+<!-- {
+  "output": "[nN]efertiti"
+} -->
+``` node
+if (1 / 1 == 1) {
+  console.log("kiss me, Nefertiti");
+}
 ```
 
 ## Tag annotation comments
@@ -200,12 +290,8 @@ use with long-lived example programs such as HTTP servers.
 
 No tag annotations, expected to be short-lived and exit successfully:
 
-``` go
-package main
-
-func main() {
-  _ = 1 / 1
-}
+``` node
+var _ = 1 / 1;
 ```
 
 Annotated with an `"output"` JSON tag that informs `gfxmr` to verify the example
@@ -215,16 +301,8 @@ program's output:
   "output": "Ohai from.*:wave:"
 } -->
 
-``` go
-package main
-
-import (
-  "fmt"
-)
-
-func main() {
-  fmt.Printf("Ohai from the land of GitHub-Flavored Markdown :wave:\n")
-}
+``` javascript
+console.log("Ohai from the land of GitHub-Flavored Markdown :wave:");
 ```
 
 Annotated with an `"interrupt"` JSON tag that informs `gfmxr` to interrupt the

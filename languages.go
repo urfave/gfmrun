@@ -24,6 +24,7 @@ func (l *Languages) denormalize() {
 	for key, def := range l.Map {
 		func() {
 			lowkey := strings.ToLower(key)
+			def.Name = lowkey
 
 			if def.Aliases == nil {
 				def.Aliases = []string{}
@@ -62,12 +63,21 @@ func (l *Languages) Lookup(identifier string) *LanguageDefinition {
 				return def
 			}
 		}
+
+		if def.AceMode != "" && def.AceMode == lowerIdent {
+			return def
+		}
+
+		if def.Group != "" && strings.ToLower(def.Group) == lowerIdent {
+			return def
+		}
 	}
 
 	return nil
 }
 
 type LanguageDefinition struct {
+	Name         string
 	Type         string   `json:"type,omitempty" yaml:"type"`
 	Aliases      []string `json:"aliases,omitempty" yaml:"aliases"`
 	Interpreters []string `json:"interpreters,omitempty" yaml:"interpreters"`
@@ -101,17 +111,17 @@ func loadLanguagesFromBytes(languagesYmlBytes []byte) (*Languages, error) {
 }
 
 func PullLanguagesYml(srcURL, destFile string) error {
-	err := os.MkdirAll(filepath.Dir(destFile), os.FileMode(0750))
-	if err != nil {
-		return err
-	}
-
 	if srcURL == "" {
 		srcURL = DefaultLanguagesYmlURL
 	}
 
 	if destFile == "" {
 		destFile = DefaultLanguagesYml
+	}
+
+	err := os.MkdirAll(filepath.Dir(destFile), os.FileMode(0750))
+	if err != nil {
+		return err
 	}
 
 	resp, err := http.Get(srcURL)
