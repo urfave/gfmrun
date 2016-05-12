@@ -29,7 +29,7 @@ GOBUILD_LDFLAGS ?= \
 all: clean test
 
 .PHONY: test
-test: deps lint build coverage.html selftest
+test: deps build coverage.html selftest
 
 .PHONY: test-no-cover
 test-no-cover:
