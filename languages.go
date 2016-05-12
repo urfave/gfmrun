@@ -130,7 +130,7 @@ func PullLanguagesYml(srcURL, destFile string) error {
 	}
 
 	if resp.StatusCode > 299 {
-		return fmt.Errorf("fetching %q returned status %v", srcURL)
+		return fmt.Errorf("fetching %q returned status %v", srcURL, resp.StatusCode)
 	}
 
 	respBodyBytes, err := ioutil.ReadAll(resp.Body)
@@ -143,7 +143,7 @@ func PullLanguagesYml(srcURL, destFile string) error {
 		return err
 	}
 
-	outTmp.Close()
+	_ = outTmp.Close()
 
 	defer func() { _ = os.Remove(outTmp.Name()) }()
 

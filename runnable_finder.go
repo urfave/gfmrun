@@ -250,6 +250,8 @@ func (rf *runnableFinder) handleTransition(transition int) *Runnable {
 
 		rf.lastComment = ""
 		rf.cur.Begin(rf.lineno, rf.trimmedLine)
+	case mdStateTransRunnableComment, mdStateTransCommentCodeBlock:
+		rf.log.WithField("transition", transition).Debug("you found the marble in the oatmeal")
 	default:
 		rf.log.WithField("transition", transition).Debug("unhandled transition")
 	}

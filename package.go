@@ -10,7 +10,10 @@ import (
 )
 
 var (
-	VersionString = "0.1.0"
+	VersionString   = ""
+	RevisionString  = ""
+	GeneratedString = ""
+	CopyrightString = ""
 )
 
 func init() {

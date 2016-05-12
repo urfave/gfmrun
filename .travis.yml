@@ -9,7 +9,6 @@ addons:
     packages:
     - zsh
 
-script:
-- go get -t -x ./...
-- go test -v ./...
-- gfmxr -D -c $(grep -cE '^``` ('$(gfmxr list-frobs | tr "\n" '|' | sed 's/|$//')')' README.md)
+before_script:
+- go get github.com/alecthomas/gometalinter
+- gometalinter --install

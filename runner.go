@@ -9,6 +9,7 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+// Runner is the top level of execution for running examples in sources
 type Runner struct {
 	Sources   []string
 	Count     int
@@ -18,6 +19,8 @@ type Runner struct {
 	log *logrus.Logger
 }
 
+// NewRunner makes a *Runner from a slice of sources, optional expected example
+// count, optional languages.yml location, and a log
 func NewRunner(sources []string, count int, languagesYml string, log *logrus.Logger) (*Runner, error) {
 	if _, err := os.Stat(languagesYml); err != nil {
 		log.WithFields(logrus.Fields{
@@ -46,6 +49,8 @@ func NewRunner(sources []string, count int, languagesYml string, log *logrus.Log
 	}, nil
 }
 
+// Run scans all sources for runnable examples, runs them, and returns a slice
+// of errors encountered
 func (r *Runner) Run() []error {
 	if len(r.Sources) < 1 {
 		r.log.Warn("no sources given")
@@ -103,7 +108,7 @@ func (r *Runner) Run() []error {
 		"source_count":  len(r.Sources),
 		"example_count": len(res),
 		"error_count":   len(errs),
-		"time":          time.Now().Sub(sourcesStart),
+		"time":          time.Since(sourcesStart),
 	}).Info("done")
 
 	return errs
@@ -124,7 +129,7 @@ func (r *Runner) checkSource(i int, sourceName, source string) []*runResult {
 
 		start := time.Now()
 		res = append(res, runnable.Run(j))
-		end := time.Now().Sub(start)
+		end := time.Since(start)
 
 		r.log.WithFields(logrus.Fields{
 			"i":      fmt.Sprintf("%d/%d", j+1, len(runnables)),
@@ -137,7 +142,7 @@ func (r *Runner) checkSource(i int, sourceName, source string) []*runResult {
 
 	r.log.WithFields(logrus.Fields{
 		"source": sourceName,
-		"time":   time.Now().Sub(sourceStart),
+		"time":   time.Since(sourceStart),
 	}).Info("checked")
 
 	return res
