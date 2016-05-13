@@ -4,6 +4,12 @@ go:
 - 1.6.2
 - master
 
+addons:
+  apt:
+    packages:
+    - zsh
+
 script:
+- go get -t -x ./...
 - go test -v ./...
-- gfmxr -D -c $(grep -cE '^``` (bash|go|java|python|ruby|sh)' README.md)
+- gfmxr -D -c $(grep -cE '^``` ('$(gfmxr list-frobs | tr "\n" '|' | sed 's/|$//')')' README.md)
