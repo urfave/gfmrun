@@ -55,7 +55,7 @@ func (l *Languages) Lookup(identifier string) *LanguageDefinition {
 
 	for _, def := range l.Map {
 		if def.Aliases == nil {
-			continue
+			def.Aliases = []string{}
 		}
 
 		for _, alias := range def.Aliases {
