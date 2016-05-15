@@ -9,8 +9,6 @@ import (
 )
 
 var (
-	integrationTests = os.Getenv("DISABLE_INTEGRATION_TESTS") == ""
-
 	fakeLanguages = []byte(`
 Fribble:
   type: programming
@@ -59,7 +57,7 @@ func TestLanguages_Lookup(t *testing.T) {
 
 func TestLanguagesIntegration(t *testing.T) {
 	if !integrationTests {
-		return
+		t.Skip("integration tests disabled")
 	}
 
 	tf, err := ioutil.TempFile("", "gfmxr-test")

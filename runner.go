@@ -21,6 +21,10 @@ type Runner struct {
 func NewRunner(sources []string, count int, languagesYml string, autoPull bool, log *logrus.Logger) (*Runner, error) {
 	var langs *Languages
 
+	if languagesYml == "" {
+		languagesYml = DefaultLanguagesYml
+	}
+
 	if _, err := os.Stat(languagesYml); err != nil && autoPull {
 		log.WithFields(logrus.Fields{
 			"url":  DefaultLanguagesYmlURL,
@@ -33,7 +37,11 @@ func NewRunner(sources []string, count int, languagesYml string, autoPull bool, 
 		}
 	}
 
-	if _, err := os.Stat(languagesYml); err != nil {
+	if _, err := os.Stat(languagesYml); err == nil {
+		log.WithFields(logrus.Fields{
+			"languages": languagesYml,
+		}).Info("loading")
+
 		langs, err = LoadLanguages(languagesYml)
 		if err != nil {
 			return nil, err
