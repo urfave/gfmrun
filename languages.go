@@ -95,13 +95,13 @@ func selfOrCanonical(def *LanguageDefinition) *LanguageDefinition {
 }
 
 type LanguageDefinition struct {
-	Name         string
-	Type         string   `json:"type,omitempty" yaml:"type"`
-	Aliases      []string `json:"aliases,omitempty" yaml:"aliases"`
-	Interpreters []string `json:"interpreters,omitempty" yaml:"interpreters"`
-	AceMode      string   `json:"ace_mode,omitempty" yaml:"ace_mode"`
-	Group        string   `json:"group,omitempty" yaml:"group"`
-	Canonical    *LanguageDefinition
+	Name         string              `json:"-"`
+	Type         string              `json:"type,omitempty" yaml:"type"`
+	Aliases      []string            `json:"aliases,omitempty" yaml:"aliases"`
+	Interpreters []string            `json:"interpreters,omitempty" yaml:"interpreters"`
+	AceMode      string              `json:"ace_mode,omitempty" yaml:"ace_mode"`
+	Group        string              `json:"group,omitempty" yaml:"group"`
+	Canonical    *LanguageDefinition `json:"-"`
 }
 
 func LoadLanguages(languagesYml string) (*Languages, error) {
