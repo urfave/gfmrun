@@ -6,7 +6,7 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/codegangsta/cli"
+	"gopkg.in/codegangsta/cli.v2"
 )
 
 var (

@@ -220,9 +220,8 @@ bye 0
 ### Implicitly Supported Languages
 
 If a code example's declared language can be matched to one of the explicitly
-supported languages listed above via the [linguist languages
-definition](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml),
-then the matched language's runner will be used.
+supported languages listed above via the [linguist languages definition], then
+the matched language's runner will be used.
 
 This example declares `node`, but will be run via the `javascript` frob, which
 happens to use the `node` executable anyway:
@@ -235,6 +234,12 @@ if (1 / 1 == 1) {
   console.log("kiss me, Nefertiti");
 }
 ```
+
+#### Disabling automatic download of languages.yml
+
+By default, the [linguist languages definition] is downloaded if not present.
+This behavior can be disabled by passing the `--no-auto-pull` / `-N` flag or
+setting a `GFMXR_NO_AUTO_PULL=true` environment variable.
 
 ## Tag annotation comments
 
@@ -353,3 +358,5 @@ func main() {
   http.ListenAndServe(":8989", nil)
 }
 ```
+
+[linguist languages definition]: https://github.com/github/linguist/blob/master/lib/linguist/languages.yml

@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/codegangsta/cli"
+	"gopkg.in/codegangsta/cli.v2"
 )
 
 func NewCLI() *cli.App {
@@ -24,6 +24,7 @@ func NewCLI() *cli.App {
 		cli.StringSliceFlag{
 			Name:   "sources, s",
 			Usage:  "markdown source(s) to search for runnable examples",
+			Value:  cli.NewStringSlice("README.md"),
 			EnvVar: "GFMXR_SOURCES,SOURCES",
 		},
 		cli.IntFlag{
@@ -31,23 +32,28 @@ func NewCLI() *cli.App {
 			Usage:  "expected count of runnable examples (for verification)",
 			EnvVar: "GFMXR_COUNT,COUNT",
 		},
-		cli.BoolFlag{
-			Name:   "debug, D",
-			Usage:  "show debug output",
-			EnvVar: "GFMXR_DEBUG,DEBUG",
-		},
 		cli.StringFlag{
 			Name:   "languages, L",
 			Usage:  "location of languages.yml file from linguist",
 			Value:  DefaultLanguagesYml,
 			EnvVar: "GFMXR_LANGUAGES,LANGUAGES",
 		},
+		cli.BoolTFlag{
+			Name:   "no-auto-pull, N",
+			Usage:  "disable automatic pull of languages.yml when missing",
+			EnvVar: "GFMXR_NO_AUTO_PULL,NO_AUTO_PULL",
+		},
+		cli.BoolFlag{
+			Name:   "debug, D",
+			Usage:  "show debug output",
+			EnvVar: "GFMXR_DEBUG,DEBUG",
+		},
 	}
 
 	app.Commands = []cli.Command{
 		cli.Command{
 			Name:  "pull-languages",
-			Usage: "explicitly download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES (automatic otherwise)",
+			Usage: "explicitly download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES (automatic unless \"--no-auto-pull\")",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "languages-url, u",
@@ -77,7 +83,7 @@ func NewCLI() *cli.App {
 	return app
 }
 
-func RunExamples(sources []string, expectedCount int, languagesFile string, log *logrus.Logger) error {
+func RunExamples(sources []string, expectedCount int, languagesFile string, autoPull bool, log *logrus.Logger) error {
 	if sources == nil {
 		sources = []string{}
 	}
@@ -86,11 +92,7 @@ func RunExamples(sources []string, expectedCount int, languagesFile string, log 
 		log = logrus.New()
 	}
 
-	if len(sources) < 1 {
-		sources = append(sources, "README.md")
-	}
-
-	runner, err := NewRunner(sources, expectedCount, languagesFile, log)
+	runner, err := NewRunner(sources, expectedCount, languagesFile, autoPull, log)
 	if err != nil {
 		return err
 	}
@@ -111,7 +113,7 @@ func cliRunExamples(ctx *cli.Context) error {
 	}
 
 	err := RunExamples(ctx.StringSlice("sources"), ctx.Int("count"),
-		ctx.String("languages"), log)
+		ctx.String("languages"), ctx.Bool("no-auto-pull"), log)
 
 	if err != nil {
 		log.Error(err)
