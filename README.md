@@ -169,9 +169,9 @@ end
 
 ### Shell
 
-If a code example has a declared language of `shell`, then `gfmxr` will write
-the source to a temporary file and run it via whatever executable is first in
-line to respond to `bash`.
+If a code example has a declared language that can be mapped to the linguist
+definition of `shell`, then `gfmxr` will write the source to a temporary file
+and run it via whatever executable is first in line to respond to `bash`.
 
 <!-- {
   "output": "[jJ]ust the way you like it"
@@ -216,6 +216,30 @@ printf "Kiss me.\nJust kiss me.\n(${0})\n"
 
 bye 0
 ```
+
+### Implicitly Supported Languages
+
+If a code example's declared language can be matched to one of the explicitly
+supported languages listed above via the [linguist languages definition], then
+the matched language's runner will be used.
+
+This example declares `node`, but will be run via the `javascript` frob, which
+happens to use the `node` executable anyway:
+
+<!-- {
+  "output": "[nN]efertiti"
+} -->
+``` node
+if (1 / 1 == 1) {
+  console.log("kiss me, Nefertiti");
+}
+```
+
+#### Disabling automatic download of languages.yml
+
+By default, the [linguist languages definition] is downloaded if not present.
+This behavior can be disabled by passing the `--no-auto-pull` / `-N` flag or
+setting a `GFMXR_NO_AUTO_PULL=true` environment variable.
 
 ## Tag annotation comments
 
@@ -334,3 +358,5 @@ func main() {
   http.ListenAndServe(":8989", nil)
 }
 ```
+
+[linguist languages definition]: https://github.com/github/linguist/blob/master/lib/linguist/languages.yml

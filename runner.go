@@ -3,24 +3,56 @@ package gfmxr
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 )
 
 type Runner struct {
-	Sources []string
-	Count   int
-	Frobs   map[string]Frob
+	Sources   []string
+	Count     int
+	Frobs     map[string]Frob
+	Languages *Languages
 
 	log *logrus.Logger
 }
 
-func NewRunner(sources []string, count int, log *logrus.Logger) (*Runner, error) {
+func NewRunner(sources []string, count int, languagesYml string, autoPull bool, log *logrus.Logger) (*Runner, error) {
+	var langs *Languages
+
+	if languagesYml == "" {
+		languagesYml = DefaultLanguagesYml
+	}
+
+	if _, err := os.Stat(languagesYml); err != nil && autoPull {
+		log.WithFields(logrus.Fields{
+			"url":  DefaultLanguagesYmlURL,
+			"dest": languagesYml,
+		}).Info("downloading")
+
+		err = PullLanguagesYml(DefaultLanguagesYmlURL, languagesYml)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if _, err := os.Stat(languagesYml); err == nil {
+		log.WithFields(logrus.Fields{
+			"languages": languagesYml,
+		}).Info("loading")
+
+		langs, err = LoadLanguages(languagesYml)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &Runner{
-		Sources: sources,
-		Count:   count,
-		Frobs:   DefaultFrobs,
+		Sources:   sources,
+		Count:     count,
+		Frobs:     DefaultFrobs,
+		Languages: langs,
 
 		log: log,
 	}, nil
@@ -130,6 +162,22 @@ func (r *Runner) findRunnables(i int, sourceName, source string) []*Runnable {
 	filteredRunnables := []*Runnable{}
 	for _, runnable := range runnables {
 		exe, ok := r.Frobs[runnable.Lang]
+		if !ok && r.Languages != nil {
+			lang := r.Languages.Lookup(runnable.Lang)
+
+			if lang == nil {
+				r.log.WithFields(logrus.Fields{
+					"source": runnable.SourceFile,
+					"lineno": runnable.LineOffset,
+					"lang":   runnable.Lang,
+				}).Debug("unknown language, skipping")
+				continue
+			}
+
+			runnable.Lang = lang.Name
+			exe, ok = r.Frobs[runnable.Lang]
+		}
+
 		if !ok {
 			r.log.WithFields(logrus.Fields{
 				"source": runnable.SourceFile,

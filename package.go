@@ -2,8 +2,11 @@ package gfmxr
 
 import (
 	"fmt"
+	"os"
+	"os/user"
+	"path/filepath"
 
-	"github.com/codegangsta/cli"
+	"gopkg.in/codegangsta/cli.v2"
 )
 
 var (
@@ -16,4 +19,26 @@ func init() {
 
 func printVersion(_ *cli.Context) {
 	fmt.Printf("%s\n", VersionString)
+}
+
+func getHomeDir() string {
+	if v := os.Getenv("HOME"); v != "" {
+		return v
+	}
+
+	curUser, err := user.Current()
+	if err != nil {
+		// well, sheesh
+		return "."
+	}
+
+	return curUser.HomeDir
+}
+
+func getCacheDir() string {
+	if xdgCacheHome := os.Getenv("XDG_CACHE_HOME"); xdgCacheHome != "" {
+		return filepath.Join(xdgCacheHome, "gfmxr")
+	}
+
+	return filepath.Join(getHomeDir(), ".cache", "gfmxr")
 }
