@@ -124,7 +124,7 @@ func cliRunExamples(ctx *cli.Context) error {
 }
 
 func cliListFrobs(ctx *cli.Context) error {
-	langs, err := LoadLanguages(ctx.GlobalString("languages"))
+	langs, err := LoadLanguages(ctx.String("languages"))
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func cliListFrobs(ctx *cli.Context) error {
 }
 
 func cliDumpLanguages(ctx *cli.Context) error {
-	langs, err := LoadLanguages(ctx.GlobalString("languages"))
+	langs, err := LoadLanguages(ctx.String("languages"))
 	if err != nil {
 		return cli.NewMultiError(cli.NewExitError("failed to load languages", 4), err)
 	}
@@ -167,5 +167,5 @@ func cliDumpLanguages(ctx *cli.Context) error {
 }
 
 func cliPullLanguages(ctx *cli.Context) error {
-	return PullLanguagesYml(ctx.String("languages-url"), ctx.GlobalString("languages"))
+	return PullLanguagesYml(ctx.String("languages-url"), ctx.String("languages"))
 }
