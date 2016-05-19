@@ -21,8 +21,14 @@ type Runner struct {
 
 // NewRunner makes a *Runner from a slice of sources, optional expected example
 // count, optional languages.yml location, and a log
-func NewRunner(sources []string, count int, languagesYml string, log *logrus.Logger) (*Runner, error) {
-	if _, err := os.Stat(languagesYml); err != nil {
+func NewRunner(sources []string, count int, languagesYml string, autoPull bool, log *logrus.Logger) (*Runner, error) {
+	var langs *Languages
+
+	if languagesYml == "" {
+		languagesYml = DefaultLanguagesYml
+	}
+
+	if _, err := os.Stat(languagesYml); err != nil && autoPull {
 		log.WithFields(logrus.Fields{
 			"url":  DefaultLanguagesYmlURL,
 			"dest": languagesYml,
@@ -34,9 +40,15 @@ func NewRunner(sources []string, count int, languagesYml string, log *logrus.Log
 		}
 	}
 
-	langs, err := LoadLanguages(languagesYml)
-	if err != nil {
-		return nil, err
+	if _, err := os.Stat(languagesYml); err == nil {
+		log.WithFields(logrus.Fields{
+			"languages": languagesYml,
+		}).Info("loading")
+
+		langs, err = LoadLanguages(languagesYml)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Runner{
@@ -155,7 +167,7 @@ func (r *Runner) findRunnables(i int, sourceName, source string) []*Runnable {
 	filteredRunnables := []*Runnable{}
 	for _, runnable := range runnables {
 		exe, ok := r.Frobs[runnable.Lang]
-		if !ok {
+		if !ok && r.Languages != nil {
 			lang := r.Languages.Lookup(runnable.Lang)
 
 			if lang == nil {

@@ -40,8 +40,18 @@ func (l *Languages) denormalize() {
 		}()
 
 		for _, alias := range def.Aliases {
-			l.Map[alias] = def
+			l.Map[alias] = &LanguageDefinition{
+				Name:         alias,
+				Type:         def.Type,
+				Aliases:      []string{},
+				Interpreters: def.Interpreters,
+				AceMode:      def.AceMode,
+				Group:        def.Group,
+				Canonical:    def,
+			}
 		}
+
+		l.Map[def.Name] = def
 	}
 }
 
@@ -49,40 +59,49 @@ func (l *Languages) Lookup(identifier string) *LanguageDefinition {
 	lowerIdent := strings.ToLower(identifier)
 	for key, def := range l.Map {
 		if key == lowerIdent {
-			return def
+			return selfOrCanonical(def)
 		}
 	}
 
 	for _, def := range l.Map {
 		if def.Aliases == nil {
-			continue
+			def.Aliases = []string{}
 		}
 
 		for _, alias := range def.Aliases {
 			if alias == lowerIdent {
-				return def
+				return selfOrCanonical(def)
 			}
 		}
 
 		if def.AceMode != "" && def.AceMode == lowerIdent {
-			return def
+			return selfOrCanonical(def)
 		}
 
 		if def.Group != "" && strings.ToLower(def.Group) == lowerIdent {
-			return def
+			return selfOrCanonical(def)
 		}
 	}
 
 	return nil
 }
 
+func selfOrCanonical(def *LanguageDefinition) *LanguageDefinition {
+	if def.Canonical != nil {
+		return def.Canonical
+	}
+
+	return def
+}
+
 type LanguageDefinition struct {
-	Name         string
-	Type         string   `json:"type,omitempty" yaml:"type"`
-	Aliases      []string `json:"aliases,omitempty" yaml:"aliases"`
-	Interpreters []string `json:"interpreters,omitempty" yaml:"interpreters"`
-	AceMode      string   `json:"ace_mode,omitempty" yaml:"ace_mode"`
-	Group        string   `json:"group,omitempty" yaml:"group"`
+	Name         string              `json:"-"`
+	Type         string              `json:"type,omitempty" yaml:"type"`
+	Aliases      []string            `json:"aliases,omitempty" yaml:"aliases"`
+	Interpreters []string            `json:"interpreters,omitempty" yaml:"interpreters"`
+	AceMode      string              `json:"ace_mode,omitempty" yaml:"ace_mode"`
+	Group        string              `json:"group,omitempty" yaml:"group"`
+	Canonical    *LanguageDefinition `json:"-"`
 }
 
 func LoadLanguages(languagesYml string) (*Languages, error) {

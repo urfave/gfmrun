@@ -134,11 +134,11 @@ func (rn *Runnable) Run(i int) *runResult {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
 
-	if _, err = tmpFile.Write([]byte(rn.String())); err != nil {
+	if _, err := tmpFile.Write([]byte(rn.String())); err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
 
-	if err = tmpFile.Close(); err != nil {
+	if err := tmpFile.Close(); err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
 
