@@ -125,7 +125,7 @@ func (rn *Runnable) Run(i int) *runResult {
 		if os.Getenv("GFMXR_PRESERVE_TMPFILES") == "1" {
 			return
 		}
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 	}()
 
 	tmpFilename := rn.Frob.TempFileName(rn)
@@ -197,6 +197,7 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 	var err error
 	interruptable := false
 	interrupted := false
+	dur := defaultKillDuration
 
 	rn.log.WithFields(logrus.Fields{
 		"runnable": rn.GoString(),
@@ -212,7 +213,7 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 			"command": c.Args,
 		}).Debug("running runnable command")
 
-		interruptable, dur := rn.Interruptable()
+		interruptable, dur = rn.Interruptable()
 
 		if c.Main && interruptable {
 			rn.log.WithFields(logrus.Fields{
