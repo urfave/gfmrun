@@ -38,8 +38,9 @@ func NewCLI() *cli.App {
 			Value:  DefaultLanguagesYml,
 			EnvVar: "GFMXR_LANGUAGES,LANGUAGES",
 		},
-		cli.BoolTFlag{
+		cli.BoolFlag{
 			Name:   "no-auto-pull, N",
+			Value:  true,
 			Usage:  "disable automatic pull of languages.yml when missing",
 			EnvVar: "GFMXR_NO_AUTO_PULL,NO_AUTO_PULL",
 		},
