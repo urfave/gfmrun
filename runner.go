@@ -111,7 +111,7 @@ func (r *Runner) Run() []error {
 			}).Debug("captured output")
 		}
 
-		if result.Error != nil {
+		if result.Error != nil && result.Error != skipErr {
 			errs = append(errs, result.Error)
 		}
 	}

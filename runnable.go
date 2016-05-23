@@ -3,6 +3,7 @@ package gfmxr
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -22,6 +24,8 @@ var (
 	zeroDuration        = time.Second * 0
 
 	wd, wdErr = os.Getwd()
+
+	skipErr = errors.New("skip")
 )
 
 func init() {
@@ -101,6 +105,28 @@ func (rn *Runnable) ExpectedOutput() *regexp.Regexp {
 	return nil
 }
 
+func (rn *Runnable) IsValidOS() bool {
+	rn.parseTags()
+	v, ok := rn.Tags["os"]
+	if !ok {
+		return true
+	}
+
+	switch v.(type) {
+	case string:
+		return runtime.GOOS == v.(string)
+	case []string:
+		for _, s := range v.([]string) {
+			if runtime.GOOS == s {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
+}
+
 func (rn *Runnable) parseTags() {
 	if rn.Tags == nil {
 		rn.Tags = map[string]interface{}{}
@@ -117,6 +143,14 @@ func (rn *Runnable) parseTags() {
 }
 
 func (rn *Runnable) Run(i int) *runResult {
+	if !rn.IsValidOS() {
+		return &runResult{Runnable: rn, Retcode: 0, Error: skipErr}
+	}
+
+	if interruptable, _ := rn.Interruptable(); interruptable && runtime.GOOS == "windows" {
+		return &runResult{Runnable: rn, Retcode: 0, Error: skipErr}
+	}
+
 	tmpDir, err := ioutil.TempDir("", "gfmxr")
 	if err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
