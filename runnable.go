@@ -3,7 +3,6 @@ package gfmxr
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -24,9 +23,15 @@ var (
 	zeroDuration        = time.Second * 0
 
 	wd, wdErr = os.Getwd()
-
-	skipErr = errors.New("skip")
 )
+
+type skipErr struct {
+	Reason string
+}
+
+func (e *skipErr) Error() string {
+	return fmt.Sprintf("skipped because %s", e.Reason)
+}
 
 func init() {
 	if wdErr != nil {
@@ -144,11 +149,19 @@ func (rn *Runnable) parseTags() {
 
 func (rn *Runnable) Run(i int) *runResult {
 	if !rn.IsValidOS() {
-		return &runResult{Runnable: rn, Retcode: 0, Error: skipErr}
+		return &runResult{
+			Runnable: rn,
+			Retcode:  0,
+			Error:    &skipErr{Reason: "os not supported"},
+		}
 	}
 
 	if interruptable, _ := rn.Interruptable(); interruptable && runtime.GOOS == "windows" {
-		return &runResult{Runnable: rn, Retcode: 0, Error: skipErr}
+		return &runResult{
+			Runnable: rn,
+			Retcode:  0,
+			Error:    &skipErr{Reason: "interrupt tag is not supported on windows"},
+		}
 	}
 
 	tmpDir, err := ioutil.TempDir("", "gfmxr")
@@ -267,6 +280,14 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 				syscall.SIGTERM,
 				syscall.SIGKILL,
 			} {
+				if cmd.Process == nil {
+					rn.log.WithFields(logrus.Fields{
+						"signal": sig,
+						"cmd":    cmd,
+					}).Debug("breaking due to missing process")
+					break
+				}
+
 				rn.log.WithFields(logrus.Fields{
 					"signal": sig,
 				}).Debug("attempting signal")

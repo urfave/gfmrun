@@ -111,8 +111,16 @@ func (r *Runner) Run() []error {
 			}).Debug("captured output")
 		}
 
-		if result.Error != nil && result.Error != skipErr {
-			errs = append(errs, result.Error)
+		if result.Error != nil {
+			if v, ok := result.Error.(*skipErr); ok {
+				r.log.WithFields(logrus.Fields{
+					"source": result.Runnable.SourceFile,
+					"line":   result.Runnable.LineOffset,
+					"reason": v.Reason,
+				}).Debug("skipped example")
+			} else {
+				errs = append(errs, result.Error)
+			}
 		}
 	}
 
