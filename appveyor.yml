@@ -10,7 +10,7 @@ environment:
   GFMXR_DEBUG: 1
 
 install:
-  - set PATH=%GOPATH%\bin;C:\go\bin;%PATH%
+  - set PATH=%GOPATH%\bin;C:\go\bin;C:\MinGW\bin;%PATH%
   - go version
   - go env
   - go get -v -t ./...
