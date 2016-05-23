@@ -5,7 +5,7 @@ os: Windows Server 2012 R2
 clone_folder: c:\gopath\src\github.com\urfave\gfmxr
 
 environment:
-  GOPATH: C:\gopath
+  GOPATH: "\\gopath"
   GOVERSION: 1.6
   GFMXR_DEBUG: 1
 
