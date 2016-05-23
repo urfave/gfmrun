@@ -209,7 +209,7 @@ the source to a temporary file and run it via whatever executable is first in
 line to respond to `zsh`.
 
 <!-- {
-  "output": "kiss me"
+  "output": "kiss me", "os": ["darwin", "linux"]
 } -->
 ``` zsh
 printf "Kiss me.\nJust kiss me.\n(${0})\n"
