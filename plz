@@ -19,6 +19,7 @@ def main(sysargs=sys.argv[:]):
         'clean': _clean,
         'copyright': _print_copyright,
         'date': _print_date,
+        'gopath': _print_gopath,
         'test-count': _print_test_count
     }
 
@@ -35,7 +36,7 @@ def main(sysargs=sys.argv[:]):
 
 def _clean(top, sysargs):
     gopath_top = os.environ.get('TOP_GOPATH', os.environ.get('GOPATH',
-        '').split(':')[0])
+        '').split(os.path.pathsep)[0])
 
     for filename in _get_cleanable_files(top, gopath_top):
         print('clean: removing path {!r}'.format(filename), file=sys.stderr)
@@ -66,6 +67,10 @@ def _print_copyright(top, _):
 def _print_date(*_):
     print(datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S%z'))
     return 0
+
+
+def _print_gopath(*_):
+    print(os.environ.get('GOPATH', '').split(os.path.pathsep)[0])
 
 
 def _print_test_count(top, sysargs):

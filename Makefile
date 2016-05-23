@@ -15,7 +15,7 @@ GENERATED_VALUE ?= $(shell $(PYTHON) ./plz date)
 COPYRIGHT_VAR := $(PACKAGE).CopyrightString
 COPYRIGHT_VALUE ?= $(shell $(PYTHON) ./plz copyright)
 
-GOPATH ?= $(shell echo $${GOPATH%%:*})
+GOPATH ?= $(shell ./plz gopath)
 GOBUILD_LDFLAGS ?= \
 	-X '$(VERSION_VAR)=$(VERSION_VALUE)' \
 	-X '$(REV_VAR)=$(REV_VALUE)' \
