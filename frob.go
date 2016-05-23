@@ -3,6 +3,7 @@ package gfmxr
 import (
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -42,7 +43,7 @@ func NewSimpleInterpretedFrob(ext, interpreter string) Frob {
 	return &InterpretedFrob{
 		ext:  ext,
 		env:  []string{},
-		tmpl: []string{interpreter, "--", "$FILE"},
+		tmpl: []string{interpreter, "--", "{{.FILE}}"},
 	}
 }
 
@@ -109,13 +110,18 @@ func (e *GoFrob) Environ(_ *Runnable) []string {
 }
 
 func (e *GoFrob) Commands(_ *Runnable) []*command {
+	goExe := ""
+	if runtime.GOOS == "windows" {
+		goExe = ".exe"
+	}
+
 	return []*command{
 		&command{
-			Args: []string{"go", "build", "-o", "$NAMEBASE", "$FILE"},
+			Args: []string{"go", "build", "-o", "{{.NAMEBASE}}" + goExe, "{{.FILE}}"},
 		},
 		&command{
 			Main: true,
-			Args: []string{"$NAMEBASE"},
+			Args: []string{"{{.NAMEBASE}}" + goExe},
 		},
 	}
 }
@@ -151,7 +157,7 @@ func (e *JavaFrob) Environ(_ *Runnable) []string {
 func (e *JavaFrob) Commands(rn *Runnable) []*command {
 	return []*command{
 		&command{
-			Args: []string{"javac", "$BASENAME"},
+			Args: []string{"javac", "{{.BASENAME}}"},
 		},
 		&command{
 			Main: true,

@@ -1,24 +1,21 @@
 PACKAGE := github.com/urfave/gfmxr
 ALL_PACKAGES := $(PACKAGE) $(PACKAGE)/cmd/...
 
-VERSION_VAR := $(PACKAGE).VersionString
-VERSION_VALUE ?= $(shell git describe --always --dirty --tags 2>/dev/null)
-REV_VAR := $(PACKAGE).RevisionString
-REV_VALUE ?= $(shell git rev-parse HEAD 2>/dev/null || echo "'???'")
-GENERATED_VAR := $(PACKAGE).GeneratedString
-GENERATED_VALUE ?= $(shell date -u +'%Y-%m-%dT%H:%M:%S%z')
-COPYRIGHT_VAR := $(PACKAGE).CopyrightString
-COPYRIGHT_VALUE ?= $(shell grep -i ^copyright LICENSE | sed 's/^[Cc]opyright //')
-
-FIND ?= find
+GIT ?= git
 GO ?= go
 GOMETALINTER ?= gometalinter
-GREP ?= grep
-SED ?= sed
-TR ?= tr
-XARGS ?= xargs
+PYTHON ?= python
 
-GOPATH := $(shell echo $${GOPATH%%:*})
+VERSION_VAR := $(PACKAGE).VersionString
+VERSION_VALUE ?= $(shell $(GIT) describe --always --dirty --tags 2>/dev/null)
+REV_VAR := $(PACKAGE).RevisionString
+REV_VALUE ?= $(shell $(GIT) rev-parse HEAD 2>/dev/null || echo "'???'")
+GENERATED_VAR := $(PACKAGE).GeneratedString
+GENERATED_VALUE ?= $(shell $(PYTHON) ./plz date)
+COPYRIGHT_VAR := $(PACKAGE).CopyrightString
+COPYRIGHT_VALUE ?= $(shell $(PYTHON) ./plz copyright)
+
+GOPATH ?= $(shell ./plz gopath)
 GOBUILD_LDFLAGS ?= \
 	-X '$(VERSION_VAR)=$(VERSION_VALUE)' \
 	-X '$(REV_VAR)=$(REV_VALUE)' \
@@ -41,9 +38,7 @@ test-race: deps
 
 .PHONY: selftest
 selftest:
-	FROBS=$$($(GO) run ./cmd/gfmxr/main.go list-frobs | $(TR) "\n" '|' | $(SED) 's/|$$//') ; \
-	SELFTEST_COUNT=$$($(GREP) -cE '^``` ('$${FROBS}')' README.md) ; \
-	$(GO) run ./cmd/gfmxr/main.go -D -c $${SELFTEST_COUNT}
+	$(GO) run ./cmd/gfmxr/main.go -D -c $(shell $(PYTHON) ./plz test-count README.md)
 
 coverage.html: coverage.coverprofile
 	$(GO) tool cover -html=$^ -o $@
@@ -71,5 +66,4 @@ deps:
 
 .PHONY: clean
 clean:
-	$(RM) coverage.html coverage.coverprofile $(GOPATH)/bin/gfmxr
-	$(FIND) $(GOPATH)/pkg -wholename "*$(PACKAGE)*.a" | $(XARGS) $(RM) -v
+	$(PYTHON) ./plz clean

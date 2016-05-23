@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -22,6 +24,14 @@ var (
 
 	wd, wdErr = os.Getwd()
 )
+
+type skipErr struct {
+	Reason string
+}
+
+func (e *skipErr) Error() string {
+	return fmt.Sprintf("skipped because %s", e.Reason)
+}
 
 func init() {
 	if wdErr != nil {
@@ -100,6 +110,28 @@ func (rn *Runnable) ExpectedOutput() *regexp.Regexp {
 	return nil
 }
 
+func (rn *Runnable) IsValidOS() bool {
+	rn.parseTags()
+	v, ok := rn.Tags["os"]
+	if !ok {
+		return true
+	}
+
+	switch v.(type) {
+	case string:
+		return runtime.GOOS == v.(string)
+	case []string:
+		for _, s := range v.([]string) {
+			if runtime.GOOS == s {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
+}
+
 func (rn *Runnable) parseTags() {
 	if rn.Tags == nil {
 		rn.Tags = map[string]interface{}{}
@@ -116,6 +148,22 @@ func (rn *Runnable) parseTags() {
 }
 
 func (rn *Runnable) Run(i int) *runResult {
+	if !rn.IsValidOS() {
+		return &runResult{
+			Runnable: rn,
+			Retcode:  0,
+			Error:    &skipErr{Reason: "os not supported"},
+		}
+	}
+
+	if interruptable, _ := rn.Interruptable(); interruptable && runtime.GOOS == "windows" {
+		return &runResult{
+			Runnable: rn,
+			Retcode:  0,
+			Error:    &skipErr{Reason: "interrupt tag is not supported on windows"},
+		}
+	}
+
 	tmpDir, err := ioutil.TempDir("", "gfmxr")
 	if err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
@@ -146,21 +194,23 @@ func (rn *Runnable) Run(i int) *runResult {
 
 	expandedCommands := []*command{}
 
+	tmplVars := map[string]string{
+		"BASENAME": filepath.Base(tmpFile.Name()),
+		"DIR":      tmpDir,
+		"EXT":      rn.Frob.Extension(),
+		"FILE":     tmpFile.Name(),
+		"NAMEBASE": nameBase,
+	}
+
 	for _, c := range rn.Frob.Commands(rn) {
 		expandedArgs := []string{}
 		for _, s := range c.Args {
-			for _, sub := range []struct {
-				Old, New string
-			}{
-				{Old: "$DIR", New: tmpDir},
-				{Old: "$EXT", New: rn.Frob.Extension()},
-				{Old: "$FILE", New: tmpFile.Name()},
-				{Old: "$BASENAME", New: filepath.Base(tmpFile.Name())},
-				{Old: "$NAMEBASE", New: nameBase},
-			} {
-				s = strings.Replace(s, sub.Old, sub.New, -1)
+			buf := &bytes.Buffer{}
+			err = template.Must(template.New("tmp").Parse(s)).Execute(buf, tmplVars)
+			if err != nil {
+				return &runResult{Runnable: rn, Retcode: -1, Error: err}
 			}
-			expandedArgs = append(expandedArgs, s)
+			expandedArgs = append(expandedArgs, buf.String())
 		}
 		expandedCommands = append(expandedCommands,
 			&command{
@@ -172,14 +222,14 @@ func (rn *Runnable) Run(i int) *runResult {
 	env := os.Environ()
 	env = append(env, rn.Frob.Environ(rn)...)
 	env = append(env,
+		fmt.Sprintf("GFMXR_BASENAME=%s", filepath.Base(tmpFile.Name())),
+		fmt.Sprintf("BASENAME=%s", filepath.Base(tmpFile.Name())),
 		fmt.Sprintf("GFMXR_DIR=%s", tmpDir),
 		fmt.Sprintf("DIR=%s", tmpDir),
 		fmt.Sprintf("GFMXR_EXT=%s", rn.Frob.Extension()),
 		fmt.Sprintf("EXT=%s", rn.Frob.Extension()),
 		fmt.Sprintf("GFMXR_FILE=%s", tmpFile.Name()),
 		fmt.Sprintf("FILE=%s", tmpFile.Name()),
-		fmt.Sprintf("GFMXR_BASENAME=%s", filepath.Base(tmpFile.Name())),
-		fmt.Sprintf("BASENAME=%s", filepath.Base(tmpFile.Name())),
 		fmt.Sprintf("GFMXR_NAMEBASE=%s", nameBase),
 		fmt.Sprintf("NAMEBASE=%s", nameBase))
 
@@ -230,6 +280,14 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 				syscall.SIGTERM,
 				syscall.SIGKILL,
 			} {
+				if cmd.Process == nil {
+					rn.log.WithFields(logrus.Fields{
+						"signal": sig,
+						"cmd":    cmd,
+					}).Debug("breaking due to missing process")
+					break
+				}
+
 				rn.log.WithFields(logrus.Fields{
 					"signal": sig,
 				}).Debug("attempting signal")

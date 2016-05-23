@@ -209,7 +209,7 @@ the source to a temporary file and run it via whatever executable is first in
 line to respond to `zsh`.
 
 <!-- {
-  "output": "kiss me"
+  "output": "kiss me", "os": ["darwin", "linux"]
 } -->
 ``` zsh
 printf "Kiss me.\nJust kiss me.\n(${0})\n"
@@ -291,6 +291,11 @@ value is truthy, then the default duration is used (3s).  If the value is a
 string duration, then the parsed duration is used.  This tag is intended for
 use with long-lived example programs such as HTTP servers.
 
+### `"os"` tag
+
+Given either a string or array of strings, skips the program if the current OS
+does not match.  When absent, no filter is applied.
+
 ## Examples
 
 No tag annotations, expected to be short-lived and exit successfully:
@@ -334,7 +339,7 @@ func main() {
 
 Similar to the above example, but the `"interrupt"` tag is truthy rather than a
 specific interval, which will result in the default interrupt duration being
-used (3s).  It is also annotated with an `"output"` JSON tag that takes
+used (3s).  It is also annotated with an `"output"` tag that takes
 precedence over the `"interrupt"` tag's behavior of ignoring the exit code:
 
 <!-- {
