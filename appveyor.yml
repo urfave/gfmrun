@@ -10,11 +10,12 @@ environment:
   GFMXR_DEBUG: 1
 
 install:
-  - set PATH=%GOPATH%\bin;C:\go\bin;C:\MinGW\bin;%PATH%
-  - go version
-  - go env
-  - go get -v -t ./...
-  - dir /a C:\MinGW\bin
+- set PATH=%GOPATH%\bin;C:\go\bin;C:\MinGW\bin;%PATH%
+- go version
+- go env
+- go get -v -t ./...
+- go get github.com/alecthomas/gometalinter
+- gometalinter --install
 
 build_script:
-  - mingw32-make
+- mingw32-make

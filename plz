@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+# hodge podge of utility stuff for use in the Makefile that used to be done with
+# shell bits, but that windows compat tho
+from __future__ import print_function
+
+import datetime
+import glob
+import os
+import re
+import subprocess
+import sys
+
+
+def main(sysargs=sys.argv[:]):
+    top = os.environ.get('TOP',
+            os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+
+    commands = {
+        'clean': _clean,
+        'copyright': _print_copyright,
+        'date': _print_date,
+        'test-count': _print_test_count
+    }
+
+    if len(sysargs) < 2 or sysargs[1] in ('-h', '--help'):
+        print('Usage: {} <{}> [whatever]'.format(
+            os.path.basename(sysargs[0]), '|'.join(commands.keys()))
+        )
+        return 1
+
+    func = commands[sysargs[1]]
+
+    return func(top, sysargs[1:])
+
+
+def _clean(top, sysargs):
+    gopath_top = os.environ.get('TOP_GOPATH', os.environ.get('GOPATH',
+        '').split(':')[0])
+
+    for filename in _get_cleanable_files(top, gopath_top):
+        print('clean: removing path {!r}'.format(filename), file=sys.stderr)
+        os.remove(filename)
+
+    return 0
+
+
+def _get_cleanable_files(top, gopath_top):
+    for candidate in glob.iglob(os.path.join(top, 'coverage.*')):
+        yield candidate
+    for candidate in glob.iglob(os.path.join(gopath_top, 'bin', 'gfmxr*')):
+        yield candidate
+    for candidate in glob.iglob(
+        os.path.join(gopath_top, 'pkg', '*', 'github.com', 'urfave', 'gfmxr*.a')
+    ):
+        yield candidate
+
+
+def _print_copyright(top, _):
+    with open(os.path.join(top, 'LICENSE')) as infile:
+        for line in infile.readlines():
+            if line.lower().startswith('copyright'):
+                print(re.sub('[Cc]opyright ', '', line.strip()))
+    return 0
+
+
+def _print_date(*_):
+    print(datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S%z'))
+    return 0
+
+
+def _print_test_count(top, sysargs):
+    filenames = sysargs[1:]
+    if len(filenames) == 0:
+        filenames = [os.path.join(top, 'README.md')]
+
+    total = 0
+    pattern = _get_frobs_pattern(top)
+
+    for filename in filenames:
+        with open(filename) as infile:
+            total += _count_examples(pattern, infile.readlines())
+
+    print(total)
+    return 0
+
+
+def _get_frobs_pattern(top):
+    frobs = [
+        frob.strip() for frob in subprocess.check_output([
+            'go', 'run',
+            os.path.join(top, 'cmd', 'gfmxr', 'main.go'), 'list-frobs'
+        ]).splitlines()
+    ]
+
+    return re.compile('^``` ({})'.format('|'.join(frobs)))
+
+
+def _count_examples(pattern, lines):
+    n = 0
+
+    for line in lines:
+        if pattern.match(line):
+            n += 1
+
+    return n
+
+
+if __name__ == '__main__':
+    sys.exit(main())
