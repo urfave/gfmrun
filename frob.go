@@ -2,8 +2,8 @@ package gfmxr
 
 import (
 	"fmt"
-	"os"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -110,13 +110,18 @@ func (e *GoFrob) Environ(_ *Runnable) []string {
 }
 
 func (e *GoFrob) Commands(_ *Runnable) []*command {
+	goExe := ""
+	if runtime.GOOS == "windows" {
+		goExe = ".exe"
+	}
+
 	return []*command{
 		&command{
-			Args: []string{"go", "build", "-o", "{{.NAMEBASE}}" + os.Getenv("GOEXE"), "{{.FILE}}"},
+			Args: []string{"go", "build", "-o", "{{.NAMEBASE}}" + goExe, "{{.FILE}}"},
 		},
 		&command{
 			Main: true,
-			Args: []string{"{{.NAMEBASE}}" + os.Getenv("GOEXE")},
+			Args: []string{"{{.NAMEBASE}}" + goExe},
 		},
 	}
 }
