@@ -14,12 +14,7 @@ install:
   - go version
   - go env
   - go get -v -t ./...
-  - ps: ls C:\MinGW\bin
-  - mingw-get install mingw32-make
+  - dir /a C:\MinGW\bin
 
 build_script:
-  - make
-
-test: off
-
-deploy: off
+  - mingw32-make
