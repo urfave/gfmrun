@@ -18,4 +18,4 @@ install:
 - gometalinter --install
 
 build_script:
-- mingw32-make
+- GOPATH=/gopath mingw32-make
