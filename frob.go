@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"runtime"
 	"strings"
 )
 
@@ -44,7 +43,7 @@ func NewSimpleInterpretedFrob(ext, interpreter string) Frob {
 	return &InterpretedFrob{
 		ext:  ext,
 		env:  []string{},
-		tmpl: []string{interpreter, "--", envRef("FILE")},
+		tmpl: []string{interpreter, "--", "{{.FILE}}"},
 	}
 }
 
@@ -113,11 +112,11 @@ func (e *GoFrob) Environ(_ *Runnable) []string {
 func (e *GoFrob) Commands(_ *Runnable) []*command {
 	return []*command{
 		&command{
-			Args: []string{"go", "build", "-o", envRef("NAMEBASE") + os.Getenv("GOEXE"), envRef("FILE")},
+			Args: []string{"go", "build", "-o", "{{.NAMEBASE}}" + os.Getenv("GOEXE"), "{{.FILE}}"},
 		},
 		&command{
 			Main: true,
-			Args: []string{envRef("NAMEBASE") + os.Getenv("GOEXE")},
+			Args: []string{"{{.NAMEBASE}}" + os.Getenv("GOEXE")},
 		},
 	}
 }
@@ -153,7 +152,7 @@ func (e *JavaFrob) Environ(_ *Runnable) []string {
 func (e *JavaFrob) Commands(rn *Runnable) []*command {
 	return []*command{
 		&command{
-			Args: []string{"javac", envRef("BASENAME")},
+			Args: []string{"javac", "{{.BASENAME}}"},
 		},
 		&command{
 			Main: true,
@@ -168,11 +167,4 @@ func (e *JavaFrob) getClassName(source string) string {
 	}
 
 	return "Unknown"
-}
-
-func envRef(s string) string {
-	if runtime.GOOS == "windows" {
-		return fmt.Sprintf("%%%s%%", s)
-	}
-	return fmt.Sprintf("$%s", s)
 }
