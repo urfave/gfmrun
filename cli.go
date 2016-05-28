@@ -6,49 +6,49 @@ import (
 	"sort"
 
 	"github.com/Sirupsen/logrus"
-	"gopkg.in/codegangsta/cli.v2"
+	"gopkg.in/urfave/cli.v2"
 )
 
 func NewCLI() *cli.App {
 	app := cli.NewApp()
 	app.Name = "gfmxr"
 	app.Usage = "github-flavored markdown example runner"
-	app.Authors = []cli.Author{
-		cli.Author{
+	app.Authors = []*cli.Author{
+		{
 			Name:  "Dan Buch",
 			Email: "dan@meatballhat.com",
 		},
 	}
 	app.Version = VersionString
 	app.Flags = []cli.Flag{
-		cli.StringSliceFlag{
+		&cli.StringSliceFlag{
 			Name:    "sources",
 			Aliases: []string{"s"},
 			Usage:   "markdown source(s) to search for runnable examples",
 			Value:   cli.NewStringSlice("README.md"),
 			EnvVars: []string{"GFMXR_SOURCES", "SOURCES"},
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:    "count",
 			Aliases: []string{"c"},
 			Usage:   "expected count of runnable examples (for verification)",
 			EnvVars: []string{"GFMXR_COUNT", "COUNT"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:    "languages",
 			Aliases: []string{"L"},
 			Usage:   "location of languages.yml file from linguist",
 			Value:   DefaultLanguagesYml,
 			EnvVars: []string{"GFMXR_LANGUAGES", "LANGUAGES"},
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:    "no-auto-pull",
 			Aliases: []string{"N"},
 			Value:   true,
 			Usage:   "disable automatic pull of languages.yml when missing",
 			EnvVars: []string{"GFMXR_NO_AUTO_PULL", "NO_AUTO_PULL"},
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:    "debug",
 			Aliases: []string{"D"},
 			Usage:   "show debug output",
@@ -56,12 +56,12 @@ func NewCLI() *cli.App {
 		},
 	}
 
-	app.Commands = []cli.Command{
-		cli.Command{
+	app.Commands = []*cli.Command{
+		{
 			Name:  "pull-languages",
 			Usage: "explicitly download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES (automatic unless \"--no-auto-pull\")",
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:    "languages-url",
 					Aliases: []string{"u"},
 					Usage:   "source URL of languages.yml file from linguist",
@@ -71,13 +71,13 @@ func NewCLI() *cli.App {
 			},
 			Action: cliPullLanguages,
 		},
-		cli.Command{
+		{
 			Name:   "dump-languages",
 			Usage:  "dump the parsed languages data structure as JSON",
 			Hidden: true,
 			Action: cliDumpLanguages,
 		},
-		cli.Command{
+		{
 			Name:   "list-frobs",
 			Usage:  "list the known frobs and handled frob aliases",
 			Hidden: true,
@@ -107,7 +107,7 @@ func RunExamples(sources []string, expectedCount int, languagesFile string, auto
 	errs := runner.Run()
 
 	if len(errs) > 0 {
-		return cli.NewMultiError(errs...)
+		return multiError(errs)
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func cliRunExamples(ctx *cli.Context) error {
 
 	if err != nil {
 		log.Error(err)
-		return cli.NewMultiError(err, cli.NewExitError("", 2))
+		return multiError([]error{err, cli.Exit("", 2)})
 	}
 
 	return nil
@@ -161,12 +161,12 @@ func cliListFrobs(ctx *cli.Context) error {
 func cliDumpLanguages(ctx *cli.Context) error {
 	langs, err := LoadLanguages(ctx.String("languages"))
 	if err != nil {
-		return cli.NewMultiError(cli.NewExitError("failed to load languages", 4), err)
+		return multiError([]error{cli.Exit("failed to load languages", 4), err})
 	}
 
 	jsonBytes, err := json.MarshalIndent(langs.Map, "", "  ")
 	if err != nil {
-		return cli.NewMultiError(cli.NewExitError("failed to marshal to json", 4), err)
+		return multiError([]error{cli.Exit("failed to marshal to json", 4), err})
 	}
 
 	fmt.Printf(string(jsonBytes) + "\n")

@@ -6,7 +6,7 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"gopkg.in/codegangsta/cli.v2"
+	"gopkg.in/urfave/cli.v2"
 )
 
 var (
@@ -44,4 +44,14 @@ func getCacheDir() string {
 	}
 
 	return filepath.Join(getHomeDir(), ".cache", "gfmxr")
+}
+
+type multiError []error
+
+func (me multiError) Error() string {
+	return fmt.Sprintf("%#v", me)
+}
+
+func (me multiError) Errors() []error {
+	return []error(me)
 }

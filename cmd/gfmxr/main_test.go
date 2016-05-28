@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"gopkg.in/codegangsta/cli.v2"
+	"gopkg.in/urfave/cli.v2"
 )
 
 func TestMain(t *testing.T) {
