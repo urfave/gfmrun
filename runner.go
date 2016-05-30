@@ -16,7 +16,9 @@ type Runner struct {
 	Frobs     map[string]Frob
 	Languages *Languages
 
-	log *logrus.Logger
+	noExec     bool
+	extractDir string
+	log        *logrus.Logger
 }
 
 // NewRunner makes a *Runner from a slice of sources, optional expected example
@@ -83,7 +85,7 @@ func (r *Runner) Run() []error {
 		res = append(res, r.checkSource(i, sourceFile, string(sourceBytes))...)
 	}
 
-	if r.Count > 0 && len(res) != r.Count {
+	if !r.noExec && r.Count > 0 && len(res) != r.Count {
 		r.log.WithFields(logrus.Fields{
 			"expected": r.Count,
 			"actual":   len(res),
@@ -140,6 +142,11 @@ func (r *Runner) checkSource(i int, sourceName, source string) []*runResult {
 	runnables := r.findRunnables(i, sourceName, source)
 
 	for j, runnable := range runnables {
+		if r.noExec {
+			res = append(res, runnable.Extract(j, r.extractDir))
+			continue
+		}
+
 		r.log.WithFields(logrus.Fields{
 			"i":      fmt.Sprintf("%d/%d", j+1, len(runnables)),
 			"source": sourceName,

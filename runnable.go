@@ -147,6 +147,25 @@ func (rn *Runnable) parseTags() {
 	}
 }
 
+func (rn *Runnable) Extract(i int, dir string) *runResult {
+	if dir == "" {
+		dir = "."
+	}
+
+	outFileName := filepath.Join(dir, fmt.Sprintf("%03d%s", i, rn.Frob.TempFileName(rn)))
+
+	rn.log.WithFields(logrus.Fields{
+		"filename": outFileName,
+	}).Info("extracting example")
+
+	err := ioutil.WriteFile(outFileName, []byte(rn.String()), os.FileMode(0600))
+	if err != nil {
+		return &runResult{Runnable: rn, Retcode: -1, Error: err}
+	}
+
+	return &runResult{Runnable: rn, Retcode: 0}
+}
+
 func (rn *Runnable) Run(i int) *runResult {
 	if !rn.IsValidOS() {
 		return &runResult{
