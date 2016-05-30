@@ -2,8 +2,11 @@ package gfmxr
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
 	"sort"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"gopkg.in/urfave/cli.v2"
@@ -83,6 +86,20 @@ func NewCLI() *cli.App {
 			Hidden: true,
 			Action: cliListFrobs,
 		},
+		{
+			Name:  "extract",
+			Usage: "extract examples to files",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "output-dir",
+					Aliases: []string{"o"},
+					Usage:   "output directory for extracted examples",
+					Value:   os.TempDir(),
+					EnvVars: []string{"GFMXR_OUTPUT_DIR", "OUTPUT_DIR"},
+				},
+			},
+			Action: cliExtract,
+		},
 	}
 
 	app.Action = cliRunExamples
@@ -107,7 +124,53 @@ func RunExamples(sources []string, expectedCount int, languagesFile string, auto
 	errs := runner.Run()
 
 	if len(errs) > 0 {
-		return multiError(errs)
+		msg := make([]string, len(errs))
+		for i, err := range errs {
+			msg[i] = err.Error()
+		}
+		return errors.New(strings.Join(msg, "\n"))
+	}
+
+	return nil
+}
+
+func ExtractExamples(sources []string, outDir, languagesFile string, autoPull bool, log *logrus.Logger) error {
+	if sources == nil {
+		sources = []string{}
+	}
+
+	if log == nil {
+		log = logrus.New()
+	}
+
+	outDirFd, err := os.Stat(outDir)
+	if err == nil && !outDirFd.IsDir() {
+		return fmt.Errorf("output path %q must be a directory or nonexistent", outDir)
+	}
+
+	if err != nil {
+		err = os.MkdirAll(outDir, os.FileMode(0750))
+	}
+
+	if err != nil {
+		return err
+	}
+
+	runner, err := NewRunner(sources, 0, languagesFile, autoPull, log)
+	if err != nil {
+		return err
+	}
+
+	runner.noExec = true
+	runner.extractDir = outDir
+	errs := runner.Run()
+
+	if len(errs) > 0 {
+		msg := make([]string, len(errs))
+		for i, err := range errs {
+			msg[i] = err.Error()
+		}
+		return errors.New(strings.Join(msg, "\n"))
 	}
 
 	return nil
@@ -124,7 +187,7 @@ func cliRunExamples(ctx *cli.Context) error {
 
 	if err != nil {
 		log.Error(err)
-		return multiError([]error{err, cli.Exit("", 2)})
+		return cli.Exit("", 2)
 	}
 
 	return nil
@@ -159,14 +222,21 @@ func cliListFrobs(ctx *cli.Context) error {
 }
 
 func cliDumpLanguages(ctx *cli.Context) error {
+	log := logrus.New()
+	if ctx.Bool("debug") {
+		log.Level = logrus.DebugLevel
+	}
+
 	langs, err := LoadLanguages(ctx.String("languages"))
 	if err != nil {
-		return multiError([]error{cli.Exit("failed to load languages", 4), err})
+		log.Error(err)
+		return cli.Exit("failed to load languages", 4)
 	}
 
 	jsonBytes, err := json.MarshalIndent(langs.Map, "", "  ")
 	if err != nil {
-		return multiError([]error{cli.Exit("failed to marshal to json", 4), err})
+		log.Error(err)
+		return cli.Exit("failed to marshal to json", 4)
 	}
 
 	fmt.Printf(string(jsonBytes) + "\n")
@@ -175,4 +245,21 @@ func cliDumpLanguages(ctx *cli.Context) error {
 
 func cliPullLanguages(ctx *cli.Context) error {
 	return PullLanguagesYml(ctx.String("languages-url"), ctx.String("languages"))
+}
+
+func cliExtract(ctx *cli.Context) error {
+	log := logrus.New()
+	if ctx.Bool("debug") {
+		log.Level = logrus.DebugLevel
+	}
+
+	err := ExtractExamples(ctx.StringSlice("sources"), ctx.String("output-dir"),
+		ctx.String("languages"), ctx.Bool("no-auto-pull"), log)
+
+	if err != nil {
+		log.Error(err)
+		return cli.Exit("", 2)
+	}
+
+	return nil
 }

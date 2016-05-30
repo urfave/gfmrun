@@ -45,13 +45,3 @@ func getCacheDir() string {
 
 	return filepath.Join(getHomeDir(), ".cache", "gfmxr")
 }
-
-type multiError []error
-
-func (me multiError) Error() string {
-	return fmt.Sprintf("%#v", me)
-}
-
-func (me multiError) Errors() []error {
-	return []error(me)
-}
