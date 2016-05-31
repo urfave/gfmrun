@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
+	"html"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+	"text/template"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -98,6 +99,21 @@ func (rn *Runnable) Interruptable() (bool, time.Duration) {
 	return false, zeroDuration
 }
 
+func (rn *Runnable) Args() []string {
+	rn.parseTags()
+	if v, ok := rn.Tags["args"]; ok {
+		if sv, ok := v.(string); ok {
+			return strings.Split(sv, " ")
+		}
+
+		if slv, ok := v.([]string); ok {
+			return slv
+		}
+	}
+
+	return nil
+}
+
 func (rn *Runnable) ExpectedOutput() *regexp.Regexp {
 	rn.parseTags()
 
@@ -141,7 +157,7 @@ func (rn *Runnable) parseTags() {
 		return
 	}
 
-	err := json.Unmarshal([]byte(rn.RawTags), &rn.Tags)
+	err := json.Unmarshal([]byte(html.UnescapeString(rn.RawTags)), &rn.Tags)
 	if err != nil {
 		rn.log.WithField("err", err).Warn("failed to parse raw tags")
 	}
@@ -273,7 +289,13 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 	}).Debug("running runnable")
 
 	for _, c := range commands {
-		cmd := exec.Command(c.Args[0], c.Args[1:]...)
+		args := c.Args[1:]
+
+		if tagArgs := rn.Args(); c.Main && tagArgs != nil {
+			args = append(args, tagArgs...)
+		}
+
+		cmd := exec.Command(c.Args[0], args...)
 		cmd.Env = env
 		cmd.Stdout = outBuf
 		cmd.Stderr = errBuf

@@ -283,6 +283,11 @@ package lolmain
 Given a regular expression string value, asserts that the program output
 (stdout) matches.
 
+### `"args"` tag
+
+Given either a string array or string value, run the program with the value as
+command line arguments.  String values are split on `" "` (space).
+
 ### `"interrupt"` tag
 
 Given either a truthy or duration string value, interrupts the program via
