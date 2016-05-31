@@ -110,8 +110,6 @@ func (rn *Runnable) Args() []string {
 			}
 			return slv
 		}
-
-		fmt.Fprintf(os.Stderr, "---> unknown \"args\" type %T value=%#v\n", v, v)
 	}
 
 	return nil
