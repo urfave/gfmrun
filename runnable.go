@@ -101,11 +101,8 @@ func (rn *Runnable) Interruptable() (bool, time.Duration) {
 
 func (rn *Runnable) Args() []string {
 	rn.parseTags()
-	if v, ok := rn.Tags["args"]; ok {
-		if sv, ok := v.(string); ok {
-			return strings.Split(sv, " ")
-		}
 
+	if v, ok := rn.Tags["args"]; ok {
 		if slv, ok := v.([]string); ok {
 			return slv
 		}

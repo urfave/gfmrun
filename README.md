@@ -285,8 +285,7 @@ Given a regular expression string value, asserts that the program output
 
 ### `"args"` tag
 
-Given either a string array or string value, run the program with the value as
-command line arguments.  String values are split on `" "` (space).
+Given a string array, run the program with the value as command line arguments.
 
 ### `"interrupt"` tag
 
