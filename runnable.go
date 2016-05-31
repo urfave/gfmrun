@@ -103,9 +103,15 @@ func (rn *Runnable) Args() []string {
 	rn.parseTags()
 
 	if v, ok := rn.Tags["args"]; ok {
-		if slv, ok := v.([]string); ok {
+		if iv, ok := v.([]interface{}); ok {
+			slv := []string{}
+			for _, v := range iv {
+				slv = append(slv, v.(string))
+			}
 			return slv
 		}
+
+		fmt.Fprintf(os.Stderr, "---> unknown \"args\" type %T value=%#v\n", v, v)
 	}
 
 	return nil
@@ -133,9 +139,9 @@ func (rn *Runnable) IsValidOS() bool {
 	switch v.(type) {
 	case string:
 		return runtime.GOOS == v.(string)
-	case []string:
-		for _, s := range v.([]string) {
-			if runtime.GOOS == s {
+	case []interface{}:
+		for _, s := range v.([]interface{}) {
+			if runtime.GOOS == s.(string) {
 				return true
 			}
 		}
