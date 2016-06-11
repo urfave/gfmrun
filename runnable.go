@@ -169,7 +169,7 @@ func (rn *Runnable) Extract(i int, dir string) *runResult {
 		dir = "."
 	}
 
-	outFileName := filepath.Join(dir, fmt.Sprintf("%03d%s", i, rn.Frob.TempFileName(rn)))
+	outFileName := filepath.Join(dir, fmt.Sprintf("%03d%s", i+1, rn.Frob.TempFileName(rn)))
 
 	rn.log.WithFields(logrus.Fields{
 		"filename": outFileName,
