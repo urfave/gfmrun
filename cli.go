@@ -13,98 +13,95 @@ import (
 )
 
 func NewCLI() *cli.App {
-	app := cli.NewApp()
-	app.Name = "gfmxr"
-	app.Usage = "github-flavored markdown example runner"
-	app.Authors = []*cli.Author{
-		{
-			Name:  "Dan Buch",
-			Email: "dan@meatballhat.com",
-		},
-	}
-	app.Version = VersionString
-	app.Flags = []cli.Flag{
-		&cli.StringSliceFlag{
-			Name:    "sources",
-			Aliases: []string{"s"},
-			Usage:   "markdown source(s) to search for runnable examples",
-			Value:   cli.NewStringSlice("README.md"),
-			EnvVars: []string{"GFMXR_SOURCES", "SOURCES"},
-		},
-		&cli.IntFlag{
-			Name:    "count",
-			Aliases: []string{"c"},
-			Usage:   "expected count of runnable examples (for verification)",
-			EnvVars: []string{"GFMXR_COUNT", "COUNT"},
-		},
-		&cli.StringFlag{
-			Name:    "languages",
-			Aliases: []string{"L"},
-			Usage:   "location of languages.yml file from linguist",
-			Value:   DefaultLanguagesYml,
-			EnvVars: []string{"GFMXR_LANGUAGES", "LANGUAGES"},
-		},
-		&cli.BoolFlag{
-			Name:    "no-auto-pull",
-			Aliases: []string{"N"},
-			Value:   true,
-			Usage:   "disable automatic pull of languages.yml when missing",
-			EnvVars: []string{"GFMXR_NO_AUTO_PULL", "NO_AUTO_PULL"},
-		},
-		&cli.BoolFlag{
-			Name:    "debug",
-			Aliases: []string{"D"},
-			Usage:   "show debug output",
-			EnvVars: []string{"GFMXR_DEBUG", "DEBUG"},
-		},
-	}
-
-	app.Commands = []*cli.Command{
-		{
-			Name:  "pull-languages",
-			Usage: "explicitly download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES (automatic unless \"--no-auto-pull\")",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:    "languages-url",
-					Aliases: []string{"u"},
-					Usage:   "source URL of languages.yml file from linguist",
-					Value:   DefaultLanguagesYmlURL,
-					EnvVars: []string{"GFMXR_LANGUAGES_URL", "LANGUAGES_URL"},
-				},
+	return &cli.App{
+		Name:    "gfmxr",
+		Usage:   "github-flavored markdown example runner",
+		Version: VersionString,
+		Authors: []*cli.Author{
+			{
+				Name:  "Dan Buch",
+				Email: "dan@meatballhat.com",
 			},
-			Action: cliPullLanguages,
 		},
-		{
-			Name:   "dump-languages",
-			Usage:  "dump the parsed languages data structure as JSON",
-			Hidden: true,
-			Action: cliDumpLanguages,
-		},
-		{
-			Name:   "list-frobs",
-			Usage:  "list the known frobs and handled frob aliases",
-			Hidden: true,
-			Action: cliListFrobs,
-		},
-		{
-			Name:  "extract",
-			Usage: "extract examples to files",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:    "output-dir",
-					Aliases: []string{"o"},
-					Usage:   "output directory for extracted examples",
-					Value:   os.TempDir(),
-					EnvVars: []string{"GFMXR_OUTPUT_DIR", "OUTPUT_DIR"},
-				},
+		Flags: []cli.Flag{
+			&cli.StringSliceFlag{
+				Name:    "sources",
+				Aliases: []string{"s"},
+				Usage:   "markdown source(s) to search for runnable examples",
+				Value:   cli.NewStringSlice("README.md"),
+				EnvVars: []string{"GFMXR_SOURCES", "SOURCES"},
 			},
-			Action: cliExtract,
+			&cli.IntFlag{
+				Name:    "count",
+				Aliases: []string{"c"},
+				Usage:   "expected count of runnable examples (for verification)",
+				EnvVars: []string{"GFMXR_COUNT", "COUNT"},
+			},
+			&cli.StringFlag{
+				Name:    "languages",
+				Aliases: []string{"L"},
+				Usage:   "location of languages.yml file from linguist",
+				Value:   DefaultLanguagesYml,
+				EnvVars: []string{"GFMXR_LANGUAGES", "LANGUAGES"},
+			},
+			&cli.BoolFlag{
+				Name:    "no-auto-pull",
+				Aliases: []string{"N"},
+				Value:   true,
+				Usage:   "disable automatic pull of languages.yml when missing",
+				EnvVars: []string{"GFMXR_NO_AUTO_PULL", "NO_AUTO_PULL"},
+			},
+			&cli.BoolFlag{
+				Name:    "debug",
+				Aliases: []string{"D"},
+				Usage:   "show debug output",
+				EnvVars: []string{"GFMXR_DEBUG", "DEBUG"},
+			},
 		},
+		Commands: []*cli.Command{
+			{
+				Name:  "pull-languages",
+				Usage: "explicitly download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES (automatic unless \"--no-auto-pull\")",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "languages-url",
+						Aliases: []string{"u"},
+						Usage:   "source URL of languages.yml file from linguist",
+						Value:   DefaultLanguagesYmlURL,
+						EnvVars: []string{"GFMXR_LANGUAGES_URL", "LANGUAGES_URL"},
+					},
+				},
+				Action: cliPullLanguages,
+			},
+			{
+				Name:   "dump-languages",
+				Usage:  "dump the parsed languages data structure as JSON",
+				Hidden: true,
+				Action: cliDumpLanguages,
+			},
+			{
+				Name:   "list-frobs",
+				Usage:  "list the known frobs and handled frob aliases",
+				Hidden: true,
+				Action: cliListFrobs,
+			},
+			{
+				Name:  "extract",
+				Usage: "extract examples to files",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "output-dir",
+						Aliases: []string{"o"},
+						Usage:   "output directory for extracted examples",
+						Value:   os.TempDir(),
+						EnvVars: []string{"GFMXR_OUTPUT_DIR", "OUTPUT_DIR"},
+					},
+				},
+				Action: cliExtract,
+			},
+		},
+		Action: cliRunExamples,
 	}
-
-	app.Action = cliRunExamples
-
-	return app
 }
 
 func RunExamples(sources []string, expectedCount int, languagesFile string, autoPull bool, log *logrus.Logger) error {
