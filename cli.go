@@ -1,4 +1,4 @@
-package gfmxr
+package gfmrun
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 
 func NewCLI() *cli.App {
 	return &cli.App{
-		Name:    "gfmxr",
+		Name:    "gfmrun",
 		Usage:   "github-flavored markdown example runner",
 		Version: VersionString,
 		Authors: []*cli.Author{

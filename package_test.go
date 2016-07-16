@@ -1,4 +1,4 @@
-package gfmxr
+package gfmrun
 
 import (
 	"io/ioutil"

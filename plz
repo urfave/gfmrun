@@ -48,10 +48,10 @@ def _clean(top, sysargs):
 def _get_cleanable_files(top, gopath_top):
     for candidate in glob.iglob(os.path.join(top, 'coverage.*')):
         yield candidate
-    for candidate in glob.iglob(os.path.join(gopath_top, 'bin', 'gfmxr*')):
+    for candidate in glob.iglob(os.path.join(gopath_top, 'bin', 'gfmrun*')):
         yield candidate
     for candidate in glob.iglob(
-        os.path.join(gopath_top, 'pkg', '*', 'github.com', 'urfave', 'gfmxr*.a')
+        os.path.join(gopath_top, 'pkg', '*', 'github.com', 'urfave', 'gfmrun*.a')
     ):
         yield candidate
 
@@ -93,7 +93,7 @@ def _get_frobs_pattern(top):
     frobs = [
         frob.strip() for frob in subprocess.check_output([
             'go', 'run',
-            os.path.join(top, 'cmd', 'gfmxr', 'main.go'), 'list-frobs'
+            os.path.join(top, 'cmd', 'gfmrun', 'main.go'), 'list-frobs'
         ]).splitlines()
     ]
 

@@ -1,4 +1,4 @@
-package gfmxr
+package gfmrun
 
 import (
 	"fmt"
@@ -40,8 +40,8 @@ func getHomeDir() string {
 
 func getCacheDir() string {
 	if xdgCacheHome := os.Getenv("XDG_CACHE_HOME"); xdgCacheHome != "" {
-		return filepath.Join(xdgCacheHome, "gfmxr")
+		return filepath.Join(xdgCacheHome, "gfmrun")
 	}
 
-	return filepath.Join(getHomeDir(), ".cache", "gfmxr")
+	return filepath.Join(getHomeDir(), ".cache", "gfmrun")
 }

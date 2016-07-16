@@ -1,4 +1,4 @@
-package gfmxr
+package gfmrun
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 func TestNewCLI(t *testing.T) {
 	app := NewCLI()
 	assert.NotNil(t, app)
-	assert.Equal(t, "gfmxr", app.Name)
+	assert.Equal(t, "gfmrun", app.Name)
 	assert.NotEmpty(t, app.Usage)
 	assert.NotEmpty(t, app.Authors)
 	assert.NotEmpty(t, app.Version)

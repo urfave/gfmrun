@@ -1,4 +1,4 @@
-package gfmxr
+package gfmrun
 
 import (
 	"bytes"
@@ -200,7 +200,7 @@ func (rn *Runnable) Run(i int) *runResult {
 		}
 	}
 
-	tmpDir, err := ioutil.TempDir("", "gfmxr")
+	tmpDir, err := ioutil.TempDir("", "gfmrun")
 	if err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
