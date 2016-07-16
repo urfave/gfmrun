@@ -20,6 +20,6 @@ func TestMain(t *testing.T) {
 		cli.OsExiter = os.Exit
 	}()
 
-	os.Args = []string{"gfmxr", "-h"}
+	os.Args = []string{"gfmrun", "-h"}
 	main()
 }

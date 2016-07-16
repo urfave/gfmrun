@@ -1,4 +1,4 @@
-PACKAGE := github.com/urfave/gfmxr
+PACKAGE := github.com/urfave/gfmrun
 ALL_PACKAGES := $(PACKAGE) $(PACKAGE)/cmd/...
 
 GIT ?= git
@@ -38,7 +38,7 @@ test-race: deps
 
 .PHONY: selftest
 selftest:
-	$(GO) run ./cmd/gfmxr/main.go -D -c $(shell $(PYTHON) ./plz test-count README.md)
+	$(GO) run ./cmd/gfmrun/main.go -D -c $(shell $(PYTHON) ./plz test-count README.md)
 
 coverage.html: coverage.coverprofile
 	$(GO) tool cover -html=$^ -o $@

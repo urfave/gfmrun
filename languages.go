@@ -1,4 +1,4 @@
-package gfmxr
+package gfmrun
 
 import (
 	"fmt"
@@ -157,7 +157,7 @@ func PullLanguagesYml(srcURL, destFile string) error {
 		return err
 	}
 
-	outTmp, err := ioutil.TempFile("", "gfmxr-linguist")
+	outTmp, err := ioutil.TempFile("", "gfmrun-linguist")
 	if err != nil {
 		return err
 	}

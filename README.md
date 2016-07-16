@@ -1,9 +1,8 @@
-# `gfmxr`
+# `gfmrun`
 
 A (<strong>G</strong>itHub-<strong>F</strong>lavored <strong>M</strong>arkdown
-E<strong>x</strong>ample <strong>R</strong>unner).  Runs stuff inside code gates
-(maybe!).  Potentially pronounceable as "Gif Mizzer", "Guh'fMaxxer" or "Guff
-Mazer".
+<strong>Run</strong>ner).  Runs stuff inside code gates
+(maybe!).
 
 This project is not intended to fully replace the example code running capabilities
 of any given language's tooling, but instead to fill a gap.  In the case of a Go
@@ -44,7 +43,7 @@ exit 0
 ### Go
 
 If a code example has a declared language of `go` and the first line is `package
-main`, then `gfmxr` will write the source to a temporary file, build it, and run
+main`, then `gfmrun` will write the source to a temporary file, build it, and run
 it.  It is worth noting that `go run` is *not* used, as this executes a child
 process of its own, thus making process management and exit success detection
 all the more complex.
@@ -69,7 +68,7 @@ func main() {
 ### Java
 
 If a code example has a declared language of `java` and a line matching `^public
-class ([^ ]+)`, then `gfmxr` will write the source to a temporary file, build
+class ([^ ]+)`, then `gfmrun` will write the source to a temporary file, build
 it, and run the class by name.
 
 <!-- {
@@ -86,7 +85,7 @@ public class GalacticPerimeter {
 
 ### JavaScript (assumed node.js compatible)
 
-If a code example has a declared language of `javascript`, then `gfmxr` will
+If a code example has a declared language of `javascript`, then `gfmrun` will
 write the source to a temporary file and run it via whatever executable is first
 in line to respond to `node`.
 
@@ -106,7 +105,7 @@ if (require.main == module) {
 
 ### JSON
 
-If a code example has a declared language of `json`, then `gfmxr` will write the
+If a code example has a declared language of `json`, then `gfmrun` will write the
 source to a temporary file and "run" it via the `node` executable for
 validation.
 
@@ -170,7 +169,7 @@ end
 ### Shell
 
 If a code example has a declared language that can be mapped to the linguist
-definition of `shell`, then `gfmxr` will write the source to a temporary file
+definition of `shell`, then `gfmrun` will write the source to a temporary file
 and run it via whatever executable is first in line to respond to `bash`.
 
 <!-- {
@@ -239,11 +238,11 @@ if (1 / 1 == 1) {
 
 By default, the [linguist languages definition] is downloaded if not present.
 This behavior can be disabled by passing the `--no-auto-pull` / `-N` flag or
-setting a `GFMXR_NO_AUTO_PULL=true` environment variable.
+setting a `GFMRUN_NO_AUTO_PULL=true` environment variable.
 
 ## Tag annotation comments
 
-`gfmxr` supports the use of JSON tags embedded in comments preceding code
+`gfmrun` supports the use of JSON tags embedded in comments preceding code
 blocks, e.g. (just pretend `^` are backticks):
 
 ```
@@ -319,7 +318,7 @@ program's output:
 console.log("Ohai from the land of GitHub-Flavored Markdown :wave:");
 ```
 
-Annotated with an `"interrupt"` JSON tag that informs `gfmxr` to interrupt the
+Annotated with an `"interrupt"` JSON tag that informs `gfmrun` to interrupt the
 example program after a specified duration, which implies that the exit code is
 ignored (not Windows-compatible):
 

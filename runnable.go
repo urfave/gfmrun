@@ -1,4 +1,4 @@
-package gfmxr
+package gfmrun
 
 import (
 	"bytes"
@@ -200,13 +200,13 @@ func (rn *Runnable) Run(i int) *runResult {
 		}
 	}
 
-	tmpDir, err := ioutil.TempDir("", "gfmxr")
+	tmpDir, err := ioutil.TempDir("", "gfmrun")
 	if err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
 
 	defer func() {
-		if os.Getenv("GFMXR_PRESERVE_TMPFILES") == "1" {
+		if os.Getenv("GFMRUN_PRESERVE_TMPFILES") == "1" {
 			return
 		}
 		_ = os.RemoveAll(tmpDir)
@@ -258,15 +258,15 @@ func (rn *Runnable) Run(i int) *runResult {
 	env := os.Environ()
 	env = append(env, rn.Frob.Environ(rn)...)
 	env = append(env,
-		fmt.Sprintf("GFMXR_BASENAME=%s", filepath.Base(tmpFile.Name())),
+		fmt.Sprintf("GFMRUN_BASENAME=%s", filepath.Base(tmpFile.Name())),
 		fmt.Sprintf("BASENAME=%s", filepath.Base(tmpFile.Name())),
-		fmt.Sprintf("GFMXR_DIR=%s", tmpDir),
+		fmt.Sprintf("GFMRUN_DIR=%s", tmpDir),
 		fmt.Sprintf("DIR=%s", tmpDir),
-		fmt.Sprintf("GFMXR_EXT=%s", rn.Frob.Extension()),
+		fmt.Sprintf("GFMRUN_EXT=%s", rn.Frob.Extension()),
 		fmt.Sprintf("EXT=%s", rn.Frob.Extension()),
-		fmt.Sprintf("GFMXR_FILE=%s", tmpFile.Name()),
+		fmt.Sprintf("GFMRUN_FILE=%s", tmpFile.Name()),
 		fmt.Sprintf("FILE=%s", tmpFile.Name()),
-		fmt.Sprintf("GFMXR_NAMEBASE=%s", nameBase),
+		fmt.Sprintf("GFMRUN_NAMEBASE=%s", nameBase),
 		fmt.Sprintf("NAMEBASE=%s", nameBase))
 
 	defer func() { _ = os.Chdir(wd) }()

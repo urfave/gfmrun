@@ -1,4 +1,4 @@
-package gfmxr
+package gfmrun
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 
 func NewCLI() *cli.App {
 	return &cli.App{
-		Name:    "gfmxr",
+		Name:    "gfmrun",
 		Usage:   "github-flavored markdown example runner",
 		Version: VersionString,
 		Authors: []*cli.Author{
@@ -29,46 +29,46 @@ func NewCLI() *cli.App {
 				Aliases: []string{"s"},
 				Usage:   "markdown source(s) to search for runnable examples",
 				Value:   cli.NewStringSlice("README.md"),
-				EnvVars: []string{"GFMXR_SOURCES", "SOURCES"},
+				EnvVars: []string{"GFMRUN_SOURCES", "SOURCES"},
 			},
 			&cli.IntFlag{
 				Name:    "count",
 				Aliases: []string{"c"},
 				Usage:   "expected count of runnable examples (for verification)",
-				EnvVars: []string{"GFMXR_COUNT", "COUNT"},
+				EnvVars: []string{"GFMRUN_COUNT", "COUNT"},
 			},
 			&cli.StringFlag{
 				Name:    "languages",
 				Aliases: []string{"L"},
 				Usage:   "location of languages.yml file from linguist",
 				Value:   DefaultLanguagesYml,
-				EnvVars: []string{"GFMXR_LANGUAGES", "LANGUAGES"},
+				EnvVars: []string{"GFMRUN_LANGUAGES", "LANGUAGES"},
 			},
 			&cli.BoolFlag{
 				Name:    "no-auto-pull",
 				Aliases: []string{"N"},
 				Value:   true,
 				Usage:   "disable automatic pull of languages.yml when missing",
-				EnvVars: []string{"GFMXR_NO_AUTO_PULL", "NO_AUTO_PULL"},
+				EnvVars: []string{"GFMRUN_NO_AUTO_PULL", "NO_AUTO_PULL"},
 			},
 			&cli.BoolFlag{
 				Name:    "debug",
 				Aliases: []string{"D"},
 				Usage:   "show debug output",
-				EnvVars: []string{"GFMXR_DEBUG", "DEBUG"},
+				EnvVars: []string{"GFMRUN_DEBUG", "DEBUG"},
 			},
 		},
 		Commands: []*cli.Command{
 			{
 				Name:  "pull-languages",
-				Usage: "explicitly download the latest languages.yml from the linguist source to $GFMXR_LANGUAGES (automatic unless \"--no-auto-pull\")",
+				Usage: "explicitly download the latest languages.yml from the linguist source to $GFMRUN_LANGUAGES (automatic unless \"--no-auto-pull\")",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:    "languages-url",
 						Aliases: []string{"u"},
 						Usage:   "source URL of languages.yml file from linguist",
 						Value:   DefaultLanguagesYmlURL,
-						EnvVars: []string{"GFMXR_LANGUAGES_URL", "LANGUAGES_URL"},
+						EnvVars: []string{"GFMRUN_LANGUAGES_URL", "LANGUAGES_URL"},
 					},
 				},
 				Action: cliPullLanguages,
@@ -94,7 +94,7 @@ func NewCLI() *cli.App {
 						Aliases: []string{"o"},
 						Usage:   "output directory for extracted examples",
 						Value:   os.TempDir(),
-						EnvVars: []string{"GFMXR_OUTPUT_DIR", "OUTPUT_DIR"},
+						EnvVars: []string{"GFMRUN_OUTPUT_DIR", "OUTPUT_DIR"},
 					},
 				},
 				Action: cliExtract,
