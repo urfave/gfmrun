@@ -239,7 +239,7 @@ if (1 / 1 == 1) {
 
 By default, the [linguist languages definition] is downloaded if not present.
 This behavior can be disabled by passing the `--no-auto-pull` / `-N` flag or
-setting a `GFMXR_NO_AUTO_PULL=true` environment variable.
+setting a `GFMRUN_NO_AUTO_PULL=true` environment variable.
 
 ## Tag annotation comments
 

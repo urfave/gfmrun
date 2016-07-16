@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	integrationTests = os.Getenv("GFMXR_DISABLE_INTEGRATION_TESTS") == ""
+	integrationTests = os.Getenv("GFMRUN_DISABLE_INTEGRATION_TESTS") == ""
 	testLog          = logrus.New()
 )
 

@@ -7,7 +7,7 @@ clone_folder: c:\gopath\src\github.com\urfave\gfmrun
 environment:
   GOPATH: c:\gopath
   GOVERSION: 1.6
-  GFMXR_DEBUG: 1
+  GFMRUN_DEBUG: 1
 
 install:
 - set PATH=%GOPATH%\bin;c:\go\bin;c:\MinGW\bin;%PATH%
