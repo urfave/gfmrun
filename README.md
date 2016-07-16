@@ -1,9 +1,8 @@
 # `gfmrun`
 
 A (<strong>G</strong>itHub-<strong>F</strong>lavored <strong>M</strong>arkdown
-E<strong>x</strong>ample <strong>R</strong>unner).  Runs stuff inside code gates
-(maybe!).  Potentially pronounceable as "Gif Mizzer", "Guh'fMaxxer" or "Guff
-Mazer".
+<strong>Run</strong>ner).  Runs stuff inside code gates
+(maybe!).
 
 This project is not intended to fully replace the example code running capabilities
 of any given language's tooling, but instead to fill a gap.  In the case of a Go
