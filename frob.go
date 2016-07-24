@@ -64,8 +64,8 @@ func (e *InterpretedFrob) CanExecute(rn *Runnable) error {
 	return nil
 }
 
-func (e *InterpretedFrob) TempFileName(_ *Runnable) string {
-	return fmt.Sprintf("example.%s", e.ext)
+func (e *InterpretedFrob) TempFileName(rn *Runnable) string {
+	return fmt.Sprintf("example-L%d.%s", rn.LineOffset, e.ext)
 }
 
 func (e *InterpretedFrob) Environ(_ *Runnable) []string {
@@ -87,8 +87,8 @@ func (e *GoFrob) Extension() string {
 	return "go"
 }
 
-func (e *GoFrob) TempFileName(_ *Runnable) string {
-	return "example.go"
+func (e *GoFrob) TempFileName(rn *Runnable) string {
+	return fmt.Sprintf("example-L%d.go", rn.LineOffset)
 }
 
 func (e *GoFrob) CanExecute(rn *Runnable) error {
