@@ -241,11 +241,9 @@ func cliDumpLanguages(ctx *cli.Context) error {
 }
 
 func cliPullLanguages(ctx *cli.Context) error {
-	log := logrus.New()
 	err := PullLanguagesYml(ctx.String("languages-url"), ctx.String("languages"))
 	if err != nil {
-		log.Error(err)
-		return cli.Exit("", 2)
+		return cli.Exit(err.Error(), 2)
 	}
 	return nil
 }
