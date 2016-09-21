@@ -2,6 +2,7 @@ package gfmrun
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -159,6 +160,7 @@ func PullLanguagesYml(srcURL, destFile string) error {
 
 	outTmp, err := ioutil.TempFile("", "gfmrun-linguist")
 	if err != nil {
+		_ = outTmp.Close()
 		return err
 	}
 
@@ -171,5 +173,21 @@ func PullLanguagesYml(srcURL, destFile string) error {
 		return err
 	}
 
-	return os.Rename(outTmp.Name(), destFile)
+	// Atomic copy of downloaded language file
+	in, err := os.Open(outTmp.Name())
+	if err != nil {
+		return err
+	}
+	defer func() { _ = in.Close() }()
+
+	out, err := os.Create(destFile)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = out.Close() }()
+
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	return out.Sync()
 }
