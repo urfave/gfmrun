@@ -1,14 +1,12 @@
 language: go
-
+dist: trusty
 go:
-- 1.6.2
+- 1.8.x
 - master
-
 addons:
   apt:
     packages:
     - zsh
-
 before_script:
 - go get github.com/alecthomas/gometalinter
 - gometalinter --install
