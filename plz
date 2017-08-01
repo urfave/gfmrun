@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # hodge podge of utility stuff for use in the Makefile that used to be done with
 # shell bits, but that windows compat tho
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import datetime
 import glob
@@ -94,7 +94,7 @@ def _get_frobs_pattern(top):
         frob.strip() for frob in subprocess.check_output([
             'go', 'run',
             os.path.join(top, 'cmd', 'gfmrun', 'main.go'), 'list-frobs'
-        ]).splitlines()
+        ]).decode('utf-8').splitlines()
     ]
 
     return re.compile('^``` ({})'.format('|'.join(frobs)))
