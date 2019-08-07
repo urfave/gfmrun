@@ -8,7 +8,12 @@ addons:
     packages:
       - zsh
 before_script:
-  - go get ./...
+  - go get github.com/sirupsen/logrus v1.4.2 || true
+  - go get github.com/stretchr/testify v1.2.2
+  - go get gopkg.in/urfave/cli.v2 v2.0.0-20190806201727-b62605953717
+  - go get gopkg.in/yaml.v2 v2.2.2
   - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin latest
+
+script:
   - golangci-lint run
   - make all
