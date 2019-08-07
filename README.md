@@ -79,6 +79,7 @@ import (
 func main() {
   fmt.Errorf("we can handle errors too")
 }
+```
 
 ### Java
 
