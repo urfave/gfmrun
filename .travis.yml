@@ -8,5 +8,5 @@ addons:
     packages:
     - zsh
 before_script:
-- go get github.com/alecthomas/gometalinter
-- gometalinter --install
+- go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+- golangci-lint run

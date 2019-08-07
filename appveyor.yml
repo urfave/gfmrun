@@ -14,8 +14,8 @@ install:
 - go version
 - go env
 - go get -v -t ./...
-- go get github.com/alecthomas/gometalinter
-- gometalinter --install
+- go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+- golangci-lint run
 
 build_script:
 - mingw32-make
