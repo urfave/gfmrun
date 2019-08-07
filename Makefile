@@ -3,7 +3,7 @@ ALL_PACKAGES := $(PACKAGE) $(PACKAGE)/cmd/...
 
 GIT ?= git
 GO ?= go
-GOMETALINTER ?= gometalinter
+GOLANGCI_LINT?= golangci-lint
 PYTHON ?= python
 
 VERSION_VAR := $(PACKAGE).VersionString
@@ -49,11 +49,7 @@ coverage.coverprofile:
 
 .PHONY: lint
 lint:
-	$(GOMETALINTER) --errors --tests -D gocyclo --deadline=1m ./...
-
-.PHONY: lintbomb
-lintbomb:
-	$(GOMETALINTER) --tests -D gocyclo --deadline=1m ./...
+	$(GOLANGCI_LINT) run
 
 .PHONY: build
 build: deps
