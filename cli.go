@@ -198,7 +198,7 @@ func cliListFrobs(ctx *cli.Context) error {
 
 	known := map[string]bool{}
 
-	for name, _ := range DefaultFrobs {
+	for name := range DefaultFrobs {
 		for _, alias := range langs.Lookup(name).Aliases {
 			known[alias] = true
 		}

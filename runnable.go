@@ -127,6 +127,18 @@ func (rn *Runnable) ExpectedOutput() *regexp.Regexp {
 	return nil
 }
 
+func (rn *Runnable) ExpectedError() *regexp.Regexp {
+	rn.parseTags()
+
+	if v, ok := rn.Tags["error"]; ok {
+		if s, ok := v.(string); ok {
+			return regexp.MustCompile(s)
+		}
+	}
+
+	return nil
+}
+
 func (rn *Runnable) IsValidOS() bool {
 	rn.parseTags()
 	v, ok := rn.Tags["os"]
@@ -283,7 +295,6 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 	var err error
 	interruptable := false
 	interrupted := false
-	dur := defaultKillDuration
 
 	rn.log.WithFields(logrus.Fields{
 		"runnable": rn.GoString(),
@@ -305,7 +316,7 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 			"command": c.Args,
 		}).Debug("running runnable command")
 
-		interruptable, dur = rn.Interruptable()
+		interruptable, dur := rn.Interruptable()
 
 		if c.Main && interruptable {
 			rn.log.WithFields(logrus.Fields{
@@ -385,6 +396,20 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 		}
 	}
 
+	expectedError := rn.ExpectedError()
+
+	if expectedError != nil {
+		if !expectedError.MatchString(res.Stderr) {
+			res.Error = fmt.Errorf("expected error does not match actual: %q ~= %q",
+				expectedError, res.Stderr)
+		} else {
+			rn.log.WithFields(logrus.Fields{
+				"expected": fmt.Sprintf("%q", expectedError.String()),
+				"actual":   fmt.Sprintf("%q", res.Stdout),
+			}).Debug("output matched")
+		}
+	}
+
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.Success() {
 			res.Retcode = 0
@@ -392,9 +417,10 @@ func (rn *Runnable) executeCommands(env []string, commands []*command) *runResul
 		}
 
 		res.Error = err
-		if interrupted && interruptable {
+		if interrupted && interruptable || expectedError != nil {
 			res.Error = nil
 		}
+
 		return res
 	}
 

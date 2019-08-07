@@ -7,12 +7,12 @@ import (
 	"gopkg.in/urfave/cli.v2"
 )
 
-func TestMain(t *testing.T) {
+func TestMain(m *testing.M) {
 	stdout := os.Stdout
 	stderr := os.Stderr
 	os.Stdout, _ = os.Create(os.DevNull)
 	os.Stderr, _ = os.Create(os.DevNull)
-	cli.OsExiter = func(i int) { return }
+	cli.OsExiter = func(i int) { }
 
 	defer func() {
 		os.Stdout = stdout
