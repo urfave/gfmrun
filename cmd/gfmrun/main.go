@@ -1,11 +1,15 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/urfave/gfmrun"
 )
 
 func main() {
-	gfmrun.NewCLI().Run(os.Args)
+	err := gfmrun.NewCLI().Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
