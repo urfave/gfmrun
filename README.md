@@ -65,6 +65,21 @@ func main() {
 }
 ```
 
+<!-- {
+  "error": "we can handle errors too"
+} -->
+``` go
+package main
+
+import (
+  "fmt"
+  "os"
+)
+
+func main() {
+  fmt.Errorf("we can handle errors too")
+}
+
 ### Java
 
 If a code example has a declared language of `java` and a line matching `^public
