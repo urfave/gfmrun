@@ -6,7 +6,7 @@ clone_folder: c:\gopath\src\github.com\urfave\gfmrun
 
 environment:
   GOPATH: c:\gopath
-  GOVERSION: 1.8
+  GOVERSION: 1.11
   GFMRUN_DEBUG: 1
 
 install:
