@@ -10,12 +10,12 @@ environment:
   GFMRUN_DEBUG: 1
 
 install:
-- set PATH=%GOPATH%\bin;c:\go\bin;c:\MinGW\bin;%PATH%
-- go version
-- go env
-- go get -v -t ./...
-- curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin latest
-- golangci-lint run
+  - set PATH=%GOPATH%\bin;c:\go\bin;c:\MinGW\bin;%PATH%
+  - go version
+  - go env
+  - go get -v -t ./...
+  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin latest
+  - golangci-lint run
 
 build_script:
-- mingw32-make
+  - mingw32-make
