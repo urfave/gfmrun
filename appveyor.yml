@@ -14,7 +14,7 @@ install:
 - go version
 - go env
 - go get -v -t ./...
-- go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+- curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin latest
 - golangci-lint run
 
 build_script:
