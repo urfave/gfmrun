@@ -240,6 +240,28 @@ func (rn *Runnable) Run(i int) *runResult {
 
 	nameBase := strings.Replace(tmpFile.Name(), "."+rn.Frob.Extension(), "", 1)
 
+	// look out for go files
+	if rn.Frob.Extension() == "go" {
+		// check if GO111MODULE env variable is set
+		if go111module := os.Getenv("GO111MODULE"); go111module != "" {
+			// if GO111MODULE is set and is not set to auto, proceed with create go module
+			if go111module != "auto" {
+				modFile, err := os.Create(filepath.Join(tmpDir, "go.mod"))
+				if err != nil {
+					return &runResult{Runnable: rn, Retcode: -1, Error: err}
+				}
+
+				if _, err := modFile.Write([]byte(fmt.Sprintf("module example%d", rn.LineOffset))); err != nil {
+					return &runResult{Runnable: rn, Retcode: -1, Error: err}
+				}
+
+				if err := modFile.Close(); err != nil {
+					return &runResult{Runnable: rn, Retcode: -1, Error: err}
+				}
+			}
+		}
+	}
+
 	expandedCommands := []*command{}
 
 	tmplVars := map[string]string{
