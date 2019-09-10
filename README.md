@@ -298,6 +298,11 @@ package lolmain
 Given a regular expression string value, asserts that the program output
 (stdout) matches.
 
+### `"error"` tag
+
+Given a regular expression string value, asserts that the program error
+(stderr) matches.
+
 ### `"args"` tag
 
 Given a string array, run the program with the value as command line arguments.
