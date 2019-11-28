@@ -10,7 +10,7 @@ addons:
 before_script:
   - go get github.com/sirupsen/logrus
   - go get github.com/stretchr/testify
-  - go get gopkg.in/urfave/cli.v2
+  - go get github.com/urfave/cli/v2
   - go get gopkg.in/yaml.v2
   - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin latest
 
