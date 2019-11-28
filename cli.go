@@ -22,6 +22,10 @@ func NewCLI() *cli.App {
 				Name:  "Dan Buch",
 				Email: "dan@meatballhat.com",
 			},
+			{
+				Name: "Ajitem Sahasrabuddhe",
+				Email: "ajitem.s@outlook.com",
+			},
 		},
 		Flags: []cli.Flag{
 			&cli.StringSliceFlag{
