@@ -1,12 +1,24 @@
 language: go
-dist: trusty
+sudo: false
+dist: bionic
+osx_image: xcode11.2
 go:
   - 1.11.x
   - 1.12.x
+  - 1.13.x
+
+os:
+  - linux
+  - osx
+
+env:
+  GO111MODULE=on GOPROXY=https://proxy.golang.org
+
 addons:
   apt:
     packages:
       - zsh
+
 before_script:
   - go get github.com/sirupsen/logrus
   - go get github.com/stretchr/testify
