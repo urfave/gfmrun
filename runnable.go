@@ -146,11 +146,11 @@ func (rn *Runnable) IsValidOS() bool {
 		return true
 	}
 
-	switch v.(type) {
+	switch val := v.(type) {
 	case string:
-		return runtime.GOOS == v.(string)
+		return runtime.GOOS == val
 	case []interface{}:
-		for _, s := range v.([]interface{}) {
+		for _, s := range val {
 			if runtime.GOOS == s.(string) {
 				return true
 			}

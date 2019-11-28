@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli/v2"
 )
 
 func NewCLI() *cli.App {
@@ -21,6 +21,10 @@ func NewCLI() *cli.App {
 			{
 				Name:  "Dan Buch",
 				Email: "dan@meatballhat.com",
+			},
+			{
+				Name: "Ajitem Sahasrabuddhe",
+				Email: "ajitem.s@outlook.com",
 			},
 		},
 		Flags: []cli.Flag{
