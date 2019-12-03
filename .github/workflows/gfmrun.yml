@@ -11,7 +11,7 @@ on:
 jobs:
   test:
     name: Test GFMRUN
-    runs_on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v1
