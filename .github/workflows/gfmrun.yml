@@ -53,27 +53,30 @@ jobs:
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./gfmrun_linux_${{ github.ref }}.tar.gz
-        asset_name: gfmrun_linux_${{ github.ref }}.tar.gz
-        asset_content_type: application/tar+gzip
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./gfmrun_linux_${{ github.ref }}.tar.gz
+          asset_name: gfmrun_linux_${{ github.ref }}.tar.gz
+          asset_content_type: application/tar+gzip
 
       - name: Upload MacOS Asset to Release
         if: success() && contains(github.ref, 'v')
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./gfmrun_darwin_${{ github.ref }}.tar.gz
-        asset_name: gfmrun_darwin_${{ github.ref }}.tar.gz
-        asset_content_type: application/tar+gzip
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./gfmrun_darwin_${{ github.ref }}.tar.gz
+          asset_name: gfmrun_darwin_${{ github.ref }}.tar.gz
+          asset_content_type: application/tar+gzip
 
       - name: Upload Windows Asset to Release
         if: success() && contains(github.ref, 'v')
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./gfmrun_windows_${{ github.ref }}.tar.gz
-        asset_name: gfmrun_windows_${{ github.ref }}.tar.gz
-        asset_content_type: application/tar+gzip
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./gfmrun_windows_${{ github.ref }}.tar.gz
+          asset_name: gfmrun_windows_${{ github.ref }}.tar.gz
+          asset_content_type: application/tar+gzip
