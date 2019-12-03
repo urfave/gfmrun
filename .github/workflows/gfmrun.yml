@@ -18,10 +18,10 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Set up Go 1.13
+      - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: latest
 
       - name: Set GOPATH and PATH
         run: |
@@ -35,6 +35,9 @@ jobs:
           golangci-lint run
 
       - name: Run Test Suite
+        uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
         run: make all
 
       - name: Build Binary
