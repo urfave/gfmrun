@@ -45,6 +45,7 @@ jobs:
         run: make build
 
       - name: Create Release
+        id: create_release
         if: success() && contains(github.ref, 'v')
         uses: actions/create-release@v1
         env:
