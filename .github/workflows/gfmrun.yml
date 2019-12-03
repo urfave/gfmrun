@@ -56,6 +56,10 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Extract Version
+        id: extract_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
       - name: Upload Linux Asset to Release
         if: success() && contains(github.ref, 'v')
         uses: actions/upload-release-asset@v1.0.1
@@ -63,8 +67,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gfmrun_linux_${{ github.ref }}.tar.gz
-          asset_name: gfmrun_linux_${{ github.ref }}.tar.gz
+          asset_path: ./gfmrun_linux_${{ steps.extract_version.outputs.VERSION }}.tar.gz
+          asset_name: gfmrun_linux_${{ steps.extract_version.outputs.VERSION }}.tar.gz
           asset_content_type: application/tar+gzip
 
       - name: Upload MacOS Asset to Release
@@ -74,8 +78,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gfmrun_darwin_${{ github.ref }}.tar.gz
-          asset_name: gfmrun_darwin_${{ github.ref }}.tar.gz
+          asset_path: ./gfmrun_darwin_${{ steps.extract_version.outputs.VERSION }}.tar.gz
+          asset_name: gfmrun_darwin_${{ steps.extract_version.outputs.VERSION }}.tar.gz
           asset_content_type: application/tar+gzip
 
       - name: Upload Windows Asset to Release
@@ -85,6 +89,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gfmrun_windows_${{ github.ref }}.tar.gz
-          asset_name: gfmrun_windows_${{ github.ref }}.tar.gz
+          asset_path: ./gfmrun_windows_${{ steps.extract_version.outputs.VERSION }}.tar.gz
+          asset_name: gfmrun_windows_${{ steps.extract_version.outputs.VERSION }}.tar.gz
           asset_content_type: application/tar+gzip
