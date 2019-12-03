@@ -36,9 +36,9 @@ jobs:
 
       - name: Run Test Suite
         uses: actions/setup-python@v1
-      with:
-        python-version: '3.x'
-        run: make all
+        with:
+          python-version: '3.x'
+          run: make all
 
       - name: Build Binary
         if: success() && contains(github.ref, 'v')
