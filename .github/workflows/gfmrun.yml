@@ -20,8 +20,6 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v1
-        with:
-          go-version: latest
 
       - name: Set GOPATH and PATH
         run: |
