@@ -78,7 +78,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gfmrun_darwin_${{ steps.extract_version.outputs.VERSION }
+          asset_path: ./gfmrun_darwin_${{ steps.extract_version.outputs.VERSION }}
           asset_name: gfmrun
           asset_content_type: application/octet-stream
 
