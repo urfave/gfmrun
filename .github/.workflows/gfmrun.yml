@@ -13,6 +13,11 @@ jobs:
     name: Test GFMRUN
     runs_on: ubuntu-latest
     steps:
+      - name: Checkout Code
+          uses: actions/checkout@v1
+          with:
+            ref: ${{ github.ref }}
+
       - name: Set up Go 1.13
           uses: actions/setup-go@v1
           with:
@@ -25,6 +30,7 @@ jobs:
         run: make all
 
       - name: Build Binary
+        if: success() && contains(github.ref, "tag")
         uses: actions/create-release@v1
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
