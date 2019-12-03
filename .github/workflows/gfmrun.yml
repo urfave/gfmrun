@@ -67,9 +67,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gfmrun_linux_${{ steps.extract_version.outputs.VERSION }}.tar.gz
-          asset_name: gfmrun_linux_${{ steps.extract_version.outputs.VERSION }}.tar.gz
-          asset_content_type: application/tar+gzip
+          asset_path: ./gfmrun_linux_${{ steps.extract_version.outputs.VERSION }}
+          asset_name: gfmrun
+          asset_content_type: application/octet-stream
 
       - name: Upload MacOS Asset to Release
         if: success() && contains(github.ref, 'v')
@@ -78,9 +78,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gfmrun_darwin_${{ steps.extract_version.outputs.VERSION }}.tar.gz
-          asset_name: gfmrun_darwin_${{ steps.extract_version.outputs.VERSION }}.tar.gz
-          asset_content_type: application/tar+gzip
+          asset_path: ./gfmrun_darwin_${{ steps.extract_version.outputs.VERSION }
+          asset_name: gfmrun
+          asset_content_type: application/octet-stream
 
       - name: Upload Windows Asset to Release
         if: success() && contains(github.ref, 'v')
@@ -89,6 +89,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gfmrun_windows_${{ steps.extract_version.outputs.VERSION }}.tar.gz
-          asset_name: gfmrun_windows_${{ steps.extract_version.outputs.VERSION }}.tar.gz
-          asset_content_type: application/tar+gzip
+          asset_path: ./gfmrun_windows_${{ steps.extract_version.outputs.VERSION }}.exe
+          asset_name: gfmrun.exe
+          asset_content_type: application/octet-stream

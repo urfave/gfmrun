@@ -53,12 +53,9 @@ lint:
 
 .PHONY: build
 build: deps
-	GOOS=linux $(GO) build -o gfmrun_linux_$(VERSION_VALUE)/gfmrun  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
-	tar -czf gfmrun_linux_$(VERSION_VALUE).tar.gz gfmrun_linux_$(VERSION_VALUE)
-	GOOS=darwin $(GO) build -o gfmrun_darwin_$(VERSION_VALUE)/gfmrun  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
-	tar -czf gfmrun_darwin_$(VERSION_VALUE).tar.gz gfmrun_darwin_$(VERSION_VALUE)
-	GOOS=windows $(GO) build -o gfmrun_windows_$(VERSION_VALUE)/gfmrun.exe  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
-	tar -czf gfmrun_windows_$(VERSION_VALUE).tar.gz gfmrun_windows_$(VERSION_VALUE)
+	GOOS=linux $(GO) build -o gfmrun_linux_$(VERSION_VALUE)  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
+	GOOS=darwin $(GO) build -o gfmrun_darwin_$(VERSION_VALUE) -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
+	GOOS=windows $(GO) build -o gfmrun_windows_$(VERSION_VALUE).exe  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
 
 .PHONY: deps
 deps:
