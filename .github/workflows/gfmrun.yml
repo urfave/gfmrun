@@ -42,6 +42,10 @@ jobs:
 
       - name: Build Binary
         if: success() && contains(github.ref, 'v')
+        run: make build
+
+      - name: Create Release
+        if: success() && contains(github.ref, 'v')
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
