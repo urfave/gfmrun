@@ -1,0 +1,35 @@
+name: Test and Build
+
+on:
+  pull_request:
+    branches:
+      master
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    name: Test GFMRUN
+    runs_on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.13
+          uses: actions/setup-go@v1
+          with:
+            go-version: 1.13
+
+      - name: Run Linter
+        run: golangci-lint run
+
+      - name: Run Test Suite
+        run: make all
+
+      - name: Build Binary
+        uses: actions/create-release@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          with:
+            tag_name: ${{ github.ref }}
+            release_name: Release ${{ github.ref }}
+            draft: false
+            prerelease: false
