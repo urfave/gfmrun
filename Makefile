@@ -53,9 +53,9 @@ lint:
 
 .PHONY: build
 build: deps
-	GOOS=linux $(GO) build -o gfmrun_linux_$(VERSION_VALUE)  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
-	GOOS=darwin $(GO) build -o gfmrun_darwin_$(VERSION_VALUE) -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
-	GOOS=windows $(GO) build -o gfmrun_windows_$(VERSION_VALUE).exe  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
+	GOOS=linux $(GO) build -o gfmrun-linux-amd64-$(VERSION_VALUE)  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
+	GOOS=darwin $(GO) build -o gfmrun-darwin-amd64-$(VERSION_VALUE) -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
+	GOOS=windows $(GO) build -o gfmrun-windows-amd64-$(VERSION_VALUE).exe  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
 
 .PHONY: deps
 deps:
