@@ -53,12 +53,13 @@ lint:
 
 .PHONY: build
 build: deps
-	$(GO) install -x -ldflags "$(GOBUILD_LDFLAGS)" $(ALL_PACKAGES)
+	GOOS=linux $(GO) build -o gfmrun-linux-amd64-$(VERSION_VALUE)  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
+	GOOS=darwin $(GO) build -o gfmrun-darwin-amd64-$(VERSION_VALUE) -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
+	GOOS=windows $(GO) build -o gfmrun-windows-amd64-$(VERSION_VALUE).exe  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
 
 .PHONY: deps
 deps:
-	$(GO) get -x -ldflags "$(GOBUILD_LDFLAGS)" $(ALL_PACKAGES)
-	$(GO) get -t -x -ldflags "$(GOBUILD_LDFLAGS)" $(ALL_PACKAGES)
+	go get ./...
 
 .PHONY: clean
 clean:

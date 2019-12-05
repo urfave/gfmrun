@@ -1,0 +1,95 @@
+name: Test and Build
+
+on:
+  pull_request:
+    branches:
+      master
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    name: Test GFMRUN
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+
+      - name: Set GOPATH and PATH
+        run: |
+          echo "##[set-env name=GOPATH;]$(dirname $GITHUB_WORKSPACE)"
+          echo "##[add-path]$(dirname $GITHUB_WORKSPACE)/bin"
+        shell: bash
+
+      - name: Run Linter
+        run: |
+          curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin latest
+          golangci-lint run
+
+      - name: Run Test Suite
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+          run: make all
+
+      - name: Build Binary
+        if: success() && contains(github.ref, 'v')
+        run: make build
+
+      - name: Create Release
+        id: create_release
+        if: success() && contains(github.ref, 'v')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Extract Version
+        if: success() && contains(github.ref, 'v')
+        id: extract_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+      - name: Upload Linux Asset to Release
+        if: success() && contains(github.ref, 'v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./gfmrun-linux-amd64-${{ steps.extract_version.outputs.VERSION }}
+          asset_name: gfmrun-linux-amd64-${{ steps.extract_version.outputs.VERSION }}
+          asset_content_type: application/octet-stream
+
+      - name: Upload MacOS Asset to Release
+        if: success() && contains(github.ref, 'v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./gfmrun-darwin-amd64-${{ steps.extract_version.outputs.VERSION }}
+          asset_name: gfmrun-darwin-amd64-${{ steps.extract_version.outputs.VERSION }}
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows Asset to Release
+        if: success() && contains(github.ref, 'v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./gfmrun-windows-amd64-${{ steps.extract_version.outputs.VERSION }}.exe
+          asset_name: gfmrun-windows-amd64-${{ steps.extract_version.outputs.VERSION }}.exe
+          asset_content_type: application/octet-stream
