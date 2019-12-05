@@ -69,7 +69,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./gfmrun-linux-amd64-${{ steps.extract_version.outputs.VERSION }}
-          asset_name: gfmrun_linux
+          asset_name: gfmrun-linux-amd64-${{ steps.extract_version.outputs.VERSION }}
           asset_content_type: application/octet-stream
 
       - name: Upload MacOS Asset to Release
@@ -80,7 +80,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./gfmrun-darwin-amd64-${{ steps.extract_version.outputs.VERSION }}
-          asset_name: gfmrun_darwin
+          asset_name: gfmrun-darwin-${{ steps.extract_version.outputs.VERSION }}
           asset_content_type: application/octet-stream
 
       - name: Upload Windows Asset to Release
@@ -91,5 +91,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./gfmrun-windows-amd64-${{ steps.extract_version.outputs.VERSION }}.exe
-          asset_name: gfmrun_win.exe
+          asset_name: gfmrun-win-${{ steps.extract_version.outputs.VERISON }}.exe
           asset_content_type: application/octet-stream
