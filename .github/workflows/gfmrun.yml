@@ -34,7 +34,7 @@ jobs:
           ruby-version: 2.7
 
       - name: Setup ZSH
-        run: apt-get install -y zsh
+        run: sudo apt-get install -y zsh
 
       - name: Set GOPATH and PATH
         run: |
