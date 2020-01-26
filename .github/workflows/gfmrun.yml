@@ -26,7 +26,15 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.x'
+          python-version: 3.8
+
+      - name: Setup Ruby
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+
+      - name: Setup ZSH
+        run: apt-get install -y zsh
 
       - name: Set GOPATH and PATH
         run: |
