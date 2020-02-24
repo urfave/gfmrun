@@ -24,7 +24,7 @@ in the `README.md` *and* example functions in `*_test.go` files.
 
 ### Bash
 
-If a code example has a declared language of `bash`, then `gfxmr` will write
+If a code example has a declared language of `bash`, then `gfmrun` will write
 the source to a temporary file and run it via whatever executable is first in
 line to respond to `bash`.
 
@@ -138,7 +138,7 @@ validation.
 
 ### Python
 
-If a code example has a declared language of `python`, then `gfxmr` will write
+If a code example has a declared language of `python`, then `gfmrun` will write
 the source to a temporary file and run it via whatever executable is first in
 line to respond to `python`.
 
@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
 ### Ruby
 
-If a code example has a declared language of `ruby`, then `gfxmr` will write
+If a code example has a declared language of `ruby`, then `gfmrun` will write
 the source to a temporary file and run it via whatever executable is first in
 line to respond to `ruby`.
 
@@ -201,7 +201,7 @@ exit 0
 
 ### Sh
 
-If a code example has a declared language of `sh`, then `gfxmr` will write
+If a code example has a declared language of `sh`, then `gfmrun` will write
 the source to a temporary file and run it via whatever executable is first in
 line to respond to `sh`.
 
@@ -219,7 +219,7 @@ exit 0
 
 ### Zsh
 
-If a code example has a declared language of `zsh`, then `gfxmr` will write
+If a code example has a declared language of `zsh`, then `gfmrun` will write
 the source to a temporary file and run it via whatever executable is first in
 line to respond to `zsh`.
 
@@ -328,7 +328,7 @@ No tag annotations, expected to be short-lived and exit successfully:
 var _ = 1 / 1;
 ```
 
-Annotated with an `"output"` JSON tag that informs `gfxmr` to verify the example
+Annotated with an `"output"` JSON tag that informs `gfmrun` to verify the example
 program's output:
 
 <!-- {
