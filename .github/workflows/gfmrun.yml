@@ -36,13 +36,10 @@ jobs:
       - name: Setup ZSH
         run: sudo apt-get install -y zsh
 
-      - name: Set PATH
-        run: echo "${GITHUB_WORKSPACE}/bin" >>"${GITHUB_PATH}"
-
       - name: Run Linter
-        run: |
-          curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin latest
-          golangci-lint run
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.45.2
 
       - name: Run Test Suite
         run: make all

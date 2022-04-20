@@ -116,10 +116,16 @@ func (e *GoFrob) Commands(_ *Runnable) []*command {
 	}
 
 	return []*command{
-		&command{
+		{
+			Args: []string{"go", "mod", "init", "gfmrun/example{{.LINENO}}"},
+		},
+		{
+			Args: []string{"go", "mod", "tidy"},
+		},
+		{
 			Args: []string{"go", "build", "-o", "{{.NAMEBASE}}" + goExe, "{{.FILE}}"},
 		},
-		&command{
+		{
 			Main: true,
 			Args: []string{"{{.NAMEBASE}}" + goExe},
 		},
