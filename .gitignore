@@ -1,4 +1,6 @@
 *.coverprofile
+.env*
+.idea
+/gfmrun-*-*-*
 coverage.html
 vendor
-.idea

@@ -57,11 +57,14 @@ package main
 import (
   "fmt"
   "os"
+
+  "golang.org/x/example/stringutil"
 )
 
 func main() {
   fmt.Printf("---> %v\n", os.Args[0])
   fmt.Println("we could make an entire album out of this one sound")
+  fmt.Println(stringutil.Reverse("[SQUEAK INTENSIFIES]"))
 }
 ```
 
@@ -72,12 +75,11 @@ func main() {
 package main
 
 import (
-  "fmt"
-  "os"
+  "log"
 )
 
 func main() {
-  fmt.Errorf("we can handle errors too")
+  log.Fatal("we can handle errors too")
 }
 ```
 

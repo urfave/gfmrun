@@ -15,7 +15,6 @@ GENERATED_VALUE ?= $(shell $(PYTHON) ./plz date)
 COPYRIGHT_VAR := $(PACKAGE).CopyrightString
 COPYRIGHT_VALUE ?= $(shell $(PYTHON) ./plz copyright)
 
-GOPATH ?= $(shell ./plz gopath)
 GOBUILD_LDFLAGS ?= \
 	-X '$(VERSION_VAR)=$(VERSION_VALUE)' \
 	-X '$(REV_VAR)=$(REV_VALUE)' \
@@ -53,9 +52,18 @@ lint:
 
 .PHONY: build
 build: deps
-	GOOS=linux $(GO) build -o gfmrun-linux-amd64-$(VERSION_VALUE)  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
-	GOOS=darwin $(GO) build -o gfmrun-darwin-amd64-$(VERSION_VALUE) -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
-	GOOS=windows $(GO) build -o gfmrun-windows-amd64-$(VERSION_VALUE).exe  -x -ldflags "$(GOBUILD_LDFLAGS)" ./cmd/gfmrun/main.go
+	GOOS=linux GOARCH=amd64 $(GO) build \
+		-o gfmrun-linux-amd64-$(VERSION_VALUE) \
+		-ldflags "$(GOBUILD_LDFLAGS)" \
+		./cmd/gfmrun/main.go && \
+	GOOS=darwin GOARCH=amd64 $(GO) build \
+		-o gfmrun-darwin-amd64-$(VERSION_VALUE) \
+		-ldflags "$(GOBUILD_LDFLAGS)" \
+		./cmd/gfmrun/main.go && \
+	GOOS=windows GOARCH=amd64 $(GO) build \
+		-o gfmrun-windows-amd64-$(VERSION_VALUE).exe \
+		-ldflags "$(GOBUILD_LDFLAGS)" \
+		./cmd/gfmrun/main.go
 
 .PHONY: deps
 deps:
