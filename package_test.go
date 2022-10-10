@@ -1,7 +1,7 @@
 package gfmrun
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -14,5 +14,5 @@ var (
 
 func init() {
 	testLog.Level = logrus.PanicLevel
-	testLog.Out = ioutil.Discard
+	testLog.Out = io.Discard
 }

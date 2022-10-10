@@ -3,7 +3,6 @@ package gfmrun
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -110,7 +109,7 @@ func LoadLanguages(languagesYml string) (*Languages, error) {
 		languagesYml = DefaultLanguagesYml
 	}
 
-	rawBytes, err := ioutil.ReadFile(languagesYml)
+	rawBytes, err := os.ReadFile(languagesYml)
 	if err != nil {
 		return nil, err
 	}
@@ -153,12 +152,12 @@ func PullLanguagesYml(srcURL, destFile string) error {
 		return fmt.Errorf("fetching %q returned status %v", srcURL, resp.StatusCode)
 	}
 
-	respBodyBytes, err := ioutil.ReadAll(resp.Body)
+	respBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
-	outTmp, err := ioutil.TempFile("", "gfmrun-linguist")
+	outTmp, err := os.CreateTemp("", "gfmrun-linguist")
 	if err != nil {
 		_ = outTmp.Close()
 		return err
@@ -168,7 +167,7 @@ func PullLanguagesYml(srcURL, destFile string) error {
 
 	defer func() { _ = os.Remove(outTmp.Name()) }()
 
-	err = ioutil.WriteFile(outTmp.Name(), respBodyBytes, os.FileMode(0640))
+	err = os.WriteFile(outTmp.Name(), respBodyBytes, os.FileMode(0640))
 	if err != nil {
 		return err
 	}

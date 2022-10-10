@@ -2,7 +2,6 @@ package gfmrun
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -76,7 +75,7 @@ func (r *Runner) Run() []error {
 	sourcesStart := time.Now()
 
 	for i, sourceFile := range r.Sources {
-		sourceBytes, err := ioutil.ReadFile(sourceFile)
+		sourceBytes, err := os.ReadFile(sourceFile)
 		if err != nil {
 			res = append(res, &runResult{Retcode: -1, Error: err})
 			continue
