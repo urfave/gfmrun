@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -187,7 +186,7 @@ func (rn *Runnable) Extract(i int, dir string) *runResult {
 		"filename": outFileName,
 	}).Info("extracting example")
 
-	err := ioutil.WriteFile(outFileName, []byte(rn.String()), os.FileMode(0600))
+	err := os.WriteFile(outFileName, []byte(rn.String()), os.FileMode(0600))
 	if err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
@@ -217,7 +216,7 @@ func (rn *Runnable) Run(i int) *runResult {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}
 
-	tmpDir, err := ioutil.TempDir(baseTmp, "tmp.*")
+	tmpDir, err := os.MkdirTemp(baseTmp, "tmp.*")
 	if err != nil {
 		return &runResult{Runnable: rn, Retcode: -1, Error: err}
 	}

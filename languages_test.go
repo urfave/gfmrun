@@ -1,7 +1,6 @@
 package gfmrun
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -60,7 +59,7 @@ func TestLanguagesIntegration(t *testing.T) {
 		t.Skip("integration tests disabled")
 	}
 
-	tf, err := ioutil.TempFile("", "gfmrun-test")
+	tf, err := os.CreateTemp("", "gfmrun-test")
 	assert.Nil(t, err)
 	tf.Close()
 
