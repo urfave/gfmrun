@@ -56,8 +56,16 @@ build: deps
 		-o gfmrun-linux-amd64-$(VERSION_VALUE) \
 		-ldflags "$(GOBUILD_LDFLAGS)" \
 		./cmd/gfmrun/main.go && \
+	GOOS=linux GOARCH=arm64 $(GO) build \
+		-o gfmrun-linux-arm64-$(VERSION_VALUE) \
+		-ldflags "$(GOBUILD_LDFLAGS)" \
+		./cmd/gfmrun/main.go && \
 	GOOS=darwin GOARCH=amd64 $(GO) build \
 		-o gfmrun-darwin-amd64-$(VERSION_VALUE) \
+		-ldflags "$(GOBUILD_LDFLAGS)" \
+		./cmd/gfmrun/main.go && \
+	GOOS=darwin GOARCH=arm64 $(GO) build \
+		-o gfmrun-darwin-arm64-$(VERSION_VALUE) \
 		-ldflags "$(GOBUILD_LDFLAGS)" \
 		./cmd/gfmrun/main.go && \
 	GOOS=windows GOARCH=amd64 $(GO) build \
