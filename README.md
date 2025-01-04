@@ -58,13 +58,13 @@ import (
   "fmt"
   "os"
 
-  "golang.org/x/example/stringutil"
+  "golang.org/x/example/hello/reverse"
 )
 
 func main() {
   fmt.Printf("---> %v\n", os.Args[0])
   fmt.Println("we could make an entire album out of this one sound")
-  fmt.Println(stringutil.Reverse("[SQUEAK INTENSIFIES]"))
+  fmt.Println(reverse.String("[SQUEAK INTENSIFIES]"))
 }
 ```
 
